@@ -1,2 +1,0 @@
-dailyBudget=400.0
-categories=Food,Travel,Tilee
