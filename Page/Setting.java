@@ -23,7 +23,7 @@ public class Setting extends JPanel{
         l1.setBounds(55, 90, 400, 50); 
         add(l1); 
 
-        JLabel l2 = new JLabel(" Set your Catagory "); 
+        JLabel l2 = new JLabel(" Set your Category "); 
         l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l2.setForeground(new Color(255, 255, 224)); 
         l2.setBounds(50, 390, 400, 50); 

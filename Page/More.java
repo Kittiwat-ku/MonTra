@@ -39,7 +39,7 @@ public class More extends JPanel {
         exbt.setToolTipText("Export");
 
         l1.addActionListener(e -> controller.showPage("Home"));
-        sumbt.addActionListener(e -> controller.showPage("Summary"));
+        sumbt.addActionListener(e -> controller.showPage("Sumpath"));
         setbt.addActionListener(e -> controller.showPage("Setting"));
     }
 
