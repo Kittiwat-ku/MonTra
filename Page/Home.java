@@ -16,33 +16,47 @@ public class Home extends JPanel {
         contentPanel.setOpaque(false);
 
         JLabel budgetl1 = new JLabel("฿");
-        JLabel budgetl2 = new JLabel("Budget");
+        JLabel budgetl2 = new JLabel(" ");
+        JLabel budgetl3 = new JLabel("Budget");
         budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         budgetl1.setForeground(Color.WHITE);
         budgetl1.setBounds(20, 40, 200, 60);
-        budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         budgetl2.setForeground(Color.WHITE);
-        budgetl2.setBounds(20, 100, 150, 30);
+        budgetl2.setBounds(50, 40, 200, 60);
+        
+        budgetl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        budgetl3.setForeground(Color.WHITE);
+        budgetl3.setBounds(20, 100, 150, 30);
         contentPanel.add(budgetl1);
         contentPanel.add(budgetl2);
+        contentPanel.add(budgetl3);
 
         JLabel remainl1 = new JLabel("฿");
-        JLabel remainl2 = new JLabel("Remain");
+        JLabel remainl2 = new JLabel(" ");
+        JLabel remainl3 = new JLabel("Remain");
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         remainl1.setForeground(Color.WHITE);
         remainl1.setBounds(250, 40, 200, 60);
-        remainl2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(Color.WHITE);
-        remainl2.setBounds(285, 100, 150, 30);
+        remainl2.setBounds(270, 40, 200, 60);
+        
+        remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        remainl3.setForeground(Color.WHITE);
+        remainl3.setBounds(285, 100, 150, 30);
         contentPanel.add(remainl1);
         contentPanel.add(remainl2);
+        contentPanel.add(remainl3);
 
-        JSeparator line1 = new JSeparator(SwingConstants.HORIZONTAL); // หรือ VERTICAL
+        JSeparator line1 = new JSeparator(SwingConstants.HORIZONTAL);
         line1.setForeground(Color.WHITE);
         line1.setBounds(15, 100, 122, 5);
         contentPanel.add(line1);
 
-        JSeparator line2 = new JSeparator(SwingConstants.HORIZONTAL); // หรือ VERTICAL
+        JSeparator line2 = new JSeparator(SwingConstants.HORIZONTAL);
         line2.setForeground(Color.WHITE);
         line2.setBounds(240, 100, 150, 5);
         contentPanel.add(line2);
