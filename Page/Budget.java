@@ -27,7 +27,7 @@ public class Budget extends JPanel{
         b2.setForeground(Color.BLACK); 
         add(b2); 
 
-        b1.addActionListener(e -> controller.showPage("Home"));
+        b1.addActionListener(e -> controller.showPage("More"));
     }
     @Override
     protected void paintComponent(Graphics g) {
