@@ -32,17 +32,15 @@ public class Sumpath extends JPanel{
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton budget = new MenuCardButton("/image/weekly.png", imgW, imgH, radius);
-        budget.setBounds(75, 150,  cardW, cardH);
-        add(budget);
+        JButton weekly = new MenuCardButton("/image/weekly.png", imgW, imgH, radius);
+        weekly.setBounds(75, 150,  cardW, cardH);
+        add(weekly);
 
-        JButton cat = new MenuCardButton("/image/monthly.png", imgW, imgH, radius);
-        cat.setBounds(75, 450, cardW, cardH);
-        add(cat);
+        JButton monthly = new MenuCardButton("/image/monthly.png", imgW, imgH, radius);
+        monthly.setBounds(75, 450, cardW, cardH);
+        add(monthly);
 
         b1.addActionListener(e -> controller.showPage("More")); 
-        budget.addActionListener(e -> controller.showPage("Budget"));
-        cat.addActionListener(e -> controller.showPage("Catagory"));
 
     }
     @Override
