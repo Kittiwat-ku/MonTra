@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 
 import javax.swing.*;
 import ButtonDesign.LabeledInputCard;
@@ -40,8 +39,10 @@ public class Budget extends JPanel{
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    appContext.getCategoryService().setDailyBudget(Double.parseDouble(description.getText()));
-                } catch (NumberFormatException | IOException e1) {
+                    double newBudget = Double.parseDouble(description.getText().trim());
+                    appContext.setDailyBudget(newBudget);
+                    controller.showPage("Home");
+                } catch (Exception e1) {
                     e1.printStackTrace();
                 }
                 
@@ -49,7 +50,6 @@ public class Budget extends JPanel{
             
         });
             
-        
         
         
     }

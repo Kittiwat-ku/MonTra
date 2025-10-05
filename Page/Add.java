@@ -5,7 +5,8 @@ import java.awt.geom.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
@@ -48,8 +49,27 @@ public class Add extends JPanel{
         
         // Action
         b1.addActionListener(e -> controller.showPage("Home")); 
+
+
+        b2.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+                double tmp = Double.parseDouble(amount.getText().trim());
+                appContext.addExpense(description.getText(), tmp, c.getSelectedItem()+"");
+                System.out.println(appContext.getRemining());
+
+            }
+            
+        });
+
+
+
     }
-        JComboBox<String> province_to_combobox(List<String> s){
+
+
+        private JComboBox<String> province_to_combobox(List<String> s){
             JComboBox<String> tmp = new JComboBox<>();
             for (String string : s) {
                 tmp.addItem(string);
@@ -57,7 +77,6 @@ public class Add extends JPanel{
             return tmp;
             
         }
-    
     // // Test
     // JComboBox<String> province_to_combobox(){
     //     JComboBox<String> tmp = new JComboBox<>();

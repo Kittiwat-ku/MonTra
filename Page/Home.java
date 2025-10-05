@@ -16,7 +16,17 @@ public class Home extends JPanel {
         contentPanel.setOpaque(false);
 
         JLabel budgetl1 = new JLabel("฿");
-        JLabel budgetl2 = new JLabel(appContext.getCategoryService().getDailyBudget()+"");
+        JLabel budgetl2 = new JLabel(" ");
+        JLabel remainl1 = new JLabel("฿");
+        JLabel remainl2 = new JLabel(" ");
+        try {
+            double initBudget = appContext.getCategoryService().getDailyBudget();
+            budgetl2.setText(String.format("%,.2f", initBudget));
+            remainl2.setText(String.format("%,.2f", initBudget));
+        } catch (Exception e) {
+            
+        }
+
         JLabel budgetl3 = new JLabel("Budget");
         budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         budgetl1.setForeground(Color.WHITE);
@@ -33,8 +43,7 @@ public class Home extends JPanel {
         contentPanel.add(budgetl2);
         contentPanel.add(budgetl3);
 
-        JLabel remainl1 = new JLabel("฿");
-        JLabel remainl2 = new JLabel(" ");
+
         JLabel remainl3 = new JLabel("Remain");
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         remainl1.setForeground(Color.WHITE);
@@ -66,7 +75,7 @@ public class Home extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(75, 200, 220, 220);
 
-        JLabel totalSpend = new JLabel("Total Spend: ", SwingConstants.CENTER);
+        JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
 
@@ -124,10 +133,19 @@ public class Home extends JPanel {
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
-
-
-
-        
+        appContext.addListener(evt -> {
+        //  if ("dailyBudget".equals(evt.getPropertyName())) {
+        //      double newVal = (double) evt.getNewValue();
+        //      javax.swing.SwingUtilities.invokeLater(() -> {
+        //          budgetl2.setText(String.format("%,.2f", newVal));
+        //       });
+        //    }
+        if ("reload".equals(evt.getPropertyName())) {
+            remainl2.setText(String.format("%,.2f", appContext.getRemining()));
+            budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
+            totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
+        }
+       });
 
     }
 

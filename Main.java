@@ -2,6 +2,8 @@ import javax.swing.*;
 
 import Config.ConfigManager;
 import Controller.AppController;
+import Expense.DailyExpense;
+
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,12 +21,14 @@ public class Main extends JFrame {
     private AppContext appContext;
     private ConfigManager configManager;
     private CategoryService categoryService;
+    private DailyExpense dailyExpense;
 
     public Main() throws IOException {
 
         configManager = new ConfigManager();
         categoryService = new CategoryService(configManager);
-        appContext = new AppContext(configManager, categoryService);
+        dailyExpense = new DailyExpense();
+        appContext = new AppContext(configManager, categoryService,dailyExpense);
 
 
         setTitle("Montra");
