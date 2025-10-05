@@ -5,18 +5,18 @@ import java.awt.geom.Point2D;
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
+import Service.AppContext;
 
 public class Home extends JPanel {
 
-    public Home(AppController controller) {
+    public Home(AppController controller,AppContext appContext) {
         setLayout(new BorderLayout());
-        setOpaque(false);
-
+        setOpaque(false);    
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
         JLabel budgetl1 = new JLabel("฿");
-        JLabel budgetl2 = new JLabel(" ");
+        JLabel budgetl2 = new JLabel(appContext.getCategoryService().getDailyBudget()+"");
         JLabel budgetl3 = new JLabel("Budget");
         budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         budgetl1.setForeground(Color.WHITE);
@@ -123,6 +123,17 @@ public class Home extends JPanel {
         homebt.addActionListener(e -> controller.showPage("Home"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
+
+
+        //State checker
+        appContext.addListener(evt -> {
+            if ("dailyBudget".equals(evt.getPropertyName())) {
+                SwingUtilities.invokeLater(() ->
+                    budgetl2.setText(String.format("%.2f", (double) evt.getNewValue()))
+                );
+            }
+        });
+        
 
     }
 

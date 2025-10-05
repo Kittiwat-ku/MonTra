@@ -2,13 +2,17 @@ package Page;
 
 import java.awt.*; 
 import java.awt.geom.*; 
-import java.io.*; 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;
 import ButtonDesign.*;
-import Controller.AppController; 
+import Controller.AppController;
+import Service.AppContext; 
 
 public class Add extends JPanel{ 
-    public Add(AppController controller){ 
+    public Add(AppController controller,AppContext appContext){ 
         setLayout(null); 
         
         JLabel l1 = new JLabel(" Add Your Transaction "); 
@@ -31,7 +35,8 @@ public class Add extends JPanel{
         amount.setBounds(30, 350, 300, 100);
         add(amount);
         
-        JComboBox<String> c = province_to_combobox(); 
+        JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
+        
         c.setBounds(57, 500, 250, 50); 
         add(c); 
 
@@ -44,35 +49,43 @@ public class Add extends JPanel{
         // Action
         b1.addActionListener(e -> controller.showPage("Home")); 
     }
-    
-    // Test
-    JComboBox<String> province_to_combobox(){
-        JComboBox<String> tmp = new JComboBox<>();
-        File f = null;
-        FileReader fr = null;
-        BufferedReader br = null;
-        try{
-            f = new File("./File/Catagoly.csv");
-            fr = new FileReader(f);
-            br = new BufferedReader(fr);
-            String s;
-            br.readLine();
-            while ((s=br.readLine()) !=null){
-                String arr[] = s.split(",");
-                tmp.addItem( arr[1]) ;
+        JComboBox<String> province_to_combobox(List<String> s){
+            JComboBox<String> tmp = new JComboBox<>();
+            for (String string : s) {
+                tmp.addItem(string);
             }
-            tmp.setSelectedItem("Chooes your Catagoly");
-        }catch(Exception e){
-            System.out.println(e);
-        }finally{
-            try{
-                br.close();fr.close();
-            }catch(Exception e){
-                System.out.println(e);
-            }
+            return tmp;
+            
         }
-        return tmp;
-    }
+    
+    // // Test
+    // JComboBox<String> province_to_combobox(){
+    //     JComboBox<String> tmp = new JComboBox<>();
+    //     File f = null;
+    //     FileReader fr = null;
+    //     BufferedReader br = null;
+    //     try{
+    //         f = new File("./File/Catagoly.csv");
+    //         fr = new FileReader(f);
+    //         br = new BufferedReader(fr);
+    //         String s;
+    //         br.readLine();
+    //         while ((s=br.readLine()) !=null){
+    //             String arr[] = s.split(",");
+    //             tmp.addItem( arr[1]) ;
+    //         }
+    //         tmp.setSelectedItem("Chooes your Catagoly");
+    //     }catch(Exception e){
+    //         System.out.println(e);
+    //     }finally{
+    //         try{
+    //             br.close();fr.close();
+    //         }catch(Exception e){
+    //             System.out.println(e);
+    //         }
+    //     }
+    //     return tmp;
+    // }
 
     // Background Color
     @Override

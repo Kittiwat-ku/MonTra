@@ -7,11 +7,12 @@ import java.awt.geom.Point2D;
 import java.util.Map;
 
 import Controller.*;
+import Service.AppContext;
 
 public class Welcome extends JPanel {
 
     @SuppressWarnings("unchecked")
-    public Welcome(AppController controller) {
+    public Welcome(AppController controller,AppContext appContext) {
         setLayout(new BorderLayout());
 
         ImageIcon icon = new ImageIcon("image/logo.png");
@@ -60,9 +61,15 @@ public class Welcome extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                controller.showPage("Home");
+                if (appContext.getCategoryService().getDailyBudget() == 0.0) {
+                    controller.showPage("Budget");
+                } else {
+                    controller.showPage("Home");
+                }
+                
             }
         });
+        
     }
     @Override
     protected void paintComponent(Graphics g) {

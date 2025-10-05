@@ -1,0 +1,4 @@
+#MonTra config
+#Sat Sep 27 01:07:03 ICT 2025
+dailyBudget=400.00
+categories=Food,Travel,Education
