@@ -125,14 +125,8 @@ public class Home extends JPanel {
         morebt.addActionListener(e -> controller.showPage("More"));
 
 
-        //State checker
-        appContext.addListener(evt -> {
-            if ("dailyBudget".equals(evt.getPropertyName())) {
-                SwingUtilities.invokeLater(() ->
-                    budgetl2.setText(String.format("%.2f", (double) evt.getNewValue()))
-                );
-            }
-        });
+
+
         
 
     }
