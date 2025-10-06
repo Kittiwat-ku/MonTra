@@ -134,16 +134,20 @@ public class Home extends JPanel {
         morebt.addActionListener(e -> controller.showPage("More"));
 
         appContext.addListener(evt -> {
-        //  if ("dailyBudget".equals(evt.getPropertyName())) {
-        //      double newVal = (double) evt.getNewValue();
-        //      javax.swing.SwingUtilities.invokeLater(() -> {
-        //          budgetl2.setText(String.format("%,.2f", newVal));
-        //       });
-        //    }
         if ("reload".equals(evt.getPropertyName())) {
+            //Refresh value
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
+
+            //color responsive
+            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
+            if (tmp < 50 && tmp > 0) {
+                remainl2.setForeground(Color.yellow);
+            } else if(tmp <= 0){
+                remainl2.setForeground(Color.red);
+            }
+            
         }
        });
 

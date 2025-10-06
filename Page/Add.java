@@ -57,6 +57,7 @@ public class Add extends JPanel{
                 
                 double tmp = Double.parseDouble(amount.getText().trim());
                 appContext.addExpense(description.getText(), tmp, c.getSelectedItem()+"");
+                controller.showPage("Home");
             }
             
         });
@@ -74,34 +75,6 @@ public class Add extends JPanel{
             return tmp;
             
         }
-    // // Test
-    // JComboBox<String> province_to_combobox(){
-    //     JComboBox<String> tmp = new JComboBox<>();
-    //     File f = null;
-    //     FileReader fr = null;
-    //     BufferedReader br = null;
-    //     try{
-    //         f = new File("./File/Catagoly.csv");
-    //         fr = new FileReader(f);
-    //         br = new BufferedReader(fr);
-    //         String s;
-    //         br.readLine();
-    //         while ((s=br.readLine()) !=null){
-    //             String arr[] = s.split(",");
-    //             tmp.addItem( arr[1]) ;
-    //         }
-    //         tmp.setSelectedItem("Chooes your Catagoly");
-    //     }catch(Exception e){
-    //         System.out.println(e);
-    //     }finally{
-    //         try{
-    //             br.close();fr.close();
-    //         }catch(Exception e){
-    //             System.out.println(e);
-    //         }
-    //     }
-    //     return tmp;
-    // }
 
     // Background Color
     @Override
