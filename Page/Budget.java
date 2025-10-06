@@ -1,14 +1,19 @@
 package Page;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+
 import javax.swing.*;
 import ButtonDesign.LabeledInputCard;
 import Controller.AppController;
 
+import Service.AppContext;
+
 public class Budget extends JPanel{
     
-    public Budget(AppController controller){
+    public Budget(AppController controller,AppContext appContext){
         setLayout( null);
 
         JButton b1 = new JButton("← Back"); 
@@ -28,6 +33,25 @@ public class Budget extends JPanel{
         add(b2); 
 
         b1.addActionListener(e -> controller.showPage("Home"));
+
+        b2.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    double newBudget = Double.parseDouble(description.getText().trim());
+                    appContext.setDailyBudget(newBudget);
+                    controller.showPage("Home");
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                
+            }
+            
+        });
+            
+        
+        
     }
     @Override
     protected void paintComponent(Graphics g) {
