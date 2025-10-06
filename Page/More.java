@@ -35,6 +35,7 @@ public class More extends JPanel {
 
         l1.addActionListener(e -> controller.showPage("Home"));
         setbt.addActionListener(e -> controller.showPage("Setting"));
+        exbt.addActionListener(e -> controller.showPage("Ep"));
     }
 
     @Override
