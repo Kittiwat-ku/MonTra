@@ -56,6 +56,10 @@ public class Main extends JFrame {
         mainPanel.add(new Export(controller), "Export");
         mainPanel.add(new Budget(controller,appContext), "Budget");
         mainPanel.add(new Sumpath(controller), "Sumpath");
+        mainPanel.add(new CategoryPath(controller), "CategoryPath");
+        mainPanel.add(new SetCat(controller, appContext), "SetCat");
+        mainPanel.add(new RemoveCat(controller), "RemoveCat");
+        
 
         add(mainPanel);
         cardLayout.show(mainPanel, "Welcome");
