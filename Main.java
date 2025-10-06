@@ -2,16 +2,17 @@ import javax.swing.*;
 
 import Config.ConfigManager;
 import Controller.AppController;
+import Expense.CsvManager;
 import Expense.DailyExpense;
 
 import java.awt.*;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 
 import Page.*;
 import Service.AppContext;
 import Service.CategoryService;
+import Service.ExpenseService;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -22,13 +23,17 @@ public class Main extends JFrame {
     private ConfigManager configManager;
     private CategoryService categoryService;
     private DailyExpense dailyExpense;
+    private ExpenseService expenseService;
+    private CsvManager csvManager;
 
     public Main() throws IOException {
 
         configManager = new ConfigManager();
         categoryService = new CategoryService(configManager);
         dailyExpense = new DailyExpense();
-        appContext = new AppContext(configManager, categoryService,dailyExpense);
+        csvManager = new CsvManager();
+        expenseService = new ExpenseService(csvManager, dailyExpense);
+        appContext = new AppContext(configManager, categoryService,dailyExpense,expenseService);
 
 
         setTitle("Montra");

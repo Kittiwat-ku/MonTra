@@ -58,8 +58,6 @@ public class Add extends JPanel{
                 
                 double tmp = Double.parseDouble(amount.getText().trim());
                 appContext.addExpense(description.getText(), tmp, c.getSelectedItem()+"");
-                System.out.println(appContext.getRemining());
-
             }
             
         });

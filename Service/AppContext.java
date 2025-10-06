@@ -12,13 +12,15 @@ public class AppContext {
     private final ConfigManager cfgMgr;
     private final CategoryService categoryService;
     private final DailyExpense dailyExpense;
+    private final ExpenseService expenseService;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-    public AppContext(ConfigManager cfgMgr, CategoryService categoryService,DailyExpense dailyExpense){
+    public AppContext(ConfigManager cfgMgr, CategoryService categoryService,DailyExpense dailyExpense,ExpenseService expenseService){
         this.cfgMgr = cfgMgr;
         this.categoryService = categoryService;
         this.dailyExpense = dailyExpense;
+        this.expenseService = expenseService;
     }
 
     public ConfigManager getCfgMgr() { return cfgMgr; }
@@ -38,7 +40,7 @@ public class AppContext {
         pcs.firePropertyChange("reload", null, null);
     }
     public void addExpense(String description,Double amount,String category){
-        dailyExpense.addExpense(new Expense(description, amount, category, LocalDateTime.now()));
+        expenseService.addExpense(description, amount, category);
         pcs.firePropertyChange("reload",null,null);
     }
     public double getRemining(){

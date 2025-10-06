@@ -1,6 +1,5 @@
 package Expense;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +14,7 @@ public class DailyExpense {
         expenses.add(expense);
     }
     public double getRemining(double budget){
-        double total = budget;
-        for (Expense expense : expenses) {
-            total -= expense.getAmount();
-        }
-        return total;
+        return budget - getSpent();
     }
     public double getSpent(){
         double total = 0;
