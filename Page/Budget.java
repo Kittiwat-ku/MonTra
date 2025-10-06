@@ -32,7 +32,7 @@ public class Budget extends JPanel{
         b2.setForeground(Color.BLACK); 
         add(b2); 
 
-        b1.addActionListener(e -> controller.showPage("Path"));
+        b1.addActionListener(e -> controller.showPage("More"));
 
         b2.addActionListener(new ActionListener() {
 
