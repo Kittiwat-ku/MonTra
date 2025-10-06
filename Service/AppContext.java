@@ -2,11 +2,9 @@ package Service;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.time.LocalDateTime;
-
 import Config.ConfigManager;
 import Expense.DailyExpense;
-import Expense.Expense;
+
 
 public class AppContext {
     private final ConfigManager cfgMgr;

@@ -19,7 +19,7 @@ public class ExpenseService {
     public void addExpense(String description,double amount,String category){
         dailyExpense.addExpense(new Expense(description, amount, category, LocalDateTime.now()));
     }
-    public void exportToCSV(){
+    public void autoexportToCSV(){
         csvManager.exportToCSV(dailyExpense.getExpenses());
     }
     public void exportToCSV(String filename){
