@@ -1,49 +1,49 @@
 package Page;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
+import java.awt.geom.*;
 import javax.swing.*;
-import ButtonDesign.MenuCardButton;
+import ButtonDesign.*;
 import Controller.AppController;
 
-public class Sumpath extends JPanel{
+public class CategoryPath extends JPanel{
 
-    public Sumpath(AppController controller){
-        setLayout(null);
+    public CategoryPath(AppController controller){
+        setLayout( null);
 
+        
         JButton b1 = new JButton("← Back"); 
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
         b1.setBounds(0, 0, 100, 30); 
         b1.setForeground(Color.BLACK); 
         add(b1);
         
-        JLabel l1 = new JLabel(" Weekly "); 
+        JLabel l1 = new JLabel(" Set Category "); 
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l1.setForeground(new Color(255, 255, 224)); 
-        l1.setBounds(125, 90, 400, 50); 
+        l1.setBounds(83, 90, 400, 50); 
         add(l1); 
 
-        JLabel l2 = new JLabel(" Monthly "); 
+        JLabel l2 = new JLabel(" Remove Category "); 
         l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l2.setForeground(new Color(255, 255, 224)); 
-        l2.setBounds(125, 390, 400, 50); 
+        l2.setBounds(50, 390, 400, 50); 
         add(l2); 
 
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton budget = new MenuCardButton("/image/weekly.png", imgW, imgH, radius);
-        budget.setBounds(75, 150,  cardW, cardH);
-        add(budget);
+        JButton add = new MenuCardButton("/image/add.png", imgW, imgH, radius);
+        add.setBounds(75, 150,  cardW, cardH);
+        add(add);
 
-        JButton cat = new MenuCardButton("/image/monthly.png", imgW, imgH, radius);
-        cat.setBounds(75, 450, cardW, cardH);
-        add(cat);
+        JButton remove = new MenuCardButton("/image/remove.png", imgW, imgH, radius);
+        remove.setBounds(75, 450, cardW, cardH);
+        add(remove);
 
-        b1.addActionListener(e -> controller.showPage("Home")); 
-        /*budget.addActionListener(e -> controller.showPage("Budget"));
-        cat.addActionListener(e -> controller.showPage("Catagory"));*/
-
+        b1.addActionListener(e -> controller.showPage("More"));
+        add.addActionListener(e -> controller.showPage("SetCat"));
+        remove.addActionListener(e -> controller.showPage("RemoveCat"));
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -70,5 +70,7 @@ public class Sumpath extends JPanel{
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
         g2d.setPaint(lgp);
         g2d.fillRect(0, 0, w, h);
+
     }
+    
 }

@@ -21,25 +21,19 @@ public class More extends JPanel {
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton sumbt = new MenuCardButton("/image/sum.png", imgW, imgH, radius);
-        sumbt.setBounds(75, 50,  cardW, cardH);
-        add(sumbt);
-
         JButton setbt = new MenuCardButton("/image/set.png", imgW, imgH, radius);
-        setbt.setBounds(75, 300, cardW, cardH);
+        setbt.setBounds(75, 150, cardW, cardH);
         add(setbt);
 
         JButton exbt  = new MenuCardButton("/image/ex.png",  imgW, imgH, radius);
-        exbt.setBounds(75, 550, cardW, cardH);
+        exbt.setBounds(75, 450, cardW, cardH);
         add(exbt);
 
         // Action
-        sumbt.setToolTipText("Summary");
         setbt.setToolTipText("Setting");
         exbt.setToolTipText("Export");
 
         l1.addActionListener(e -> controller.showPage("Home"));
-        sumbt.addActionListener(e -> controller.showPage("Sumpath"));
         setbt.addActionListener(e -> controller.showPage("Setting"));
     }
 

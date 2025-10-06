@@ -1,8 +1,7 @@
 package Page;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 
 import javax.swing.*;
@@ -11,9 +10,9 @@ import Controller.AppController;
 
 import Service.AppContext;
 
-public class Budget extends JPanel{
+public class SetCat extends JPanel{
     
-    public Budget(AppController controller,AppContext appContext){
+    public SetCat(AppController controller,AppContext appContext){
         setLayout( null);
 
         JButton b1 = new JButton("← Back"); 
@@ -22,7 +21,7 @@ public class Budget extends JPanel{
         b1.setForeground(Color.BLACK); 
         add(b1);
         
-        LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
+        LabeledInputCard description = new LabeledInputCard("Category", "Set Category");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -32,25 +31,7 @@ public class Budget extends JPanel{
         b2.setForeground(Color.BLACK); 
         add(b2); 
 
-        b1.addActionListener(e -> controller.showPage("Path"));
-
-        b2.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    double newBudget = Double.parseDouble(description.getText().trim());
-                    appContext.setDailyBudget(newBudget);
-                    controller.showPage("Home");
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-                
-            }
-            
-        });
-            
-        
+        b1.addActionListener(e -> controller.showPage("CategoryPath"));
         
     }
     @Override

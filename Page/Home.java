@@ -106,7 +106,7 @@ public class Home extends JPanel {
         JPanel navBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 20));
         navBar.setOpaque(false); 
 
-        CircleButton homebt = new CircleButton("🏠");
+        CircleButton homebt = new CircleButton("📊");
         homebt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 23));
         homebt.setPreferredSize(new Dimension(50,50));
 
@@ -125,29 +125,25 @@ public class Home extends JPanel {
         add(navBar, BorderLayout.SOUTH);
 
         //Action
-        homebt.setToolTipText("Home");
+        homebt.setToolTipText("Summary");
         addbt.setToolTipText("Add");
         morebt.setToolTipText("More");
         
-        homebt.addActionListener(e -> controller.showPage("Home"));
+        homebt.addActionListener(e -> controller.showPage("Sumpath"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
         appContext.addListener(evt -> {
+        //  if ("dailyBudget".equals(evt.getPropertyName())) {
+        //      double newVal = (double) evt.getNewValue();
+        //      javax.swing.SwingUtilities.invokeLater(() -> {
+        //          budgetl2.setText(String.format("%,.2f", newVal));
+        //       });
+        //    }
         if ("reload".equals(evt.getPropertyName())) {
-            //Refresh value
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
-
-            //color responsive
-            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
-            if (tmp < 50 && tmp > 0) {
-                remainl2.setForeground(Color.yellow);
-            } else if(tmp <= 0){
-                remainl2.setForeground(Color.red);
-            }
-            
         }
        });
 
