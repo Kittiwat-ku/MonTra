@@ -11,9 +11,9 @@ import Controller.AppController;
 
 import Service.AppContext;
 
-public class Budget extends JPanel {
+public class Ep extends JPanel {
 
-    public Budget(AppController controller, AppContext appContext) {
+    public Ep(AppController controller, AppContext appContext) {
         setLayout(null);
 
         JButton b1 = new JButton("← Back");
@@ -22,7 +22,7 @@ public class Budget extends JPanel {
         b1.setForeground(Color.BLACK);
         add(b1);
 
-        LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
+        LabeledInputCard description = new LabeledInputCard("Export", "Insert filename");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -33,20 +33,13 @@ public class Budget extends JPanel {
         add(b2);
 
         b1.addActionListener(e -> controller.showPage("More"));
-
         b2.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    double newBudget = Double.parseDouble(description.getText().trim());
-                    appContext.setDailyBudget(newBudget);
-                    description.setText("");
-                    controller.showPage("Home");
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-
+                appContext.getExpenseService().exportToCSV(description.getText());
+                description.setText("");
+                controller.showPage("Home");
             }
 
         });

@@ -40,9 +40,9 @@ public class Sumpath extends JPanel{
         cat.setBounds(75, 450, cardW, cardH);
         add(cat);
 
-        b1.addActionListener(e -> controller.showPage("More")); 
-        budget.addActionListener(e -> controller.showPage("Budget"));
-        cat.addActionListener(e -> controller.showPage("Catagory"));
+        b1.addActionListener(e -> controller.showPage("Home")); 
+        /*budget.addActionListener(e -> controller.showPage("Budget"));
+        cat.addActionListener(e -> controller.showPage("Catagory"));*/
 
     }
     @Override

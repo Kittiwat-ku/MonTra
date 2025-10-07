@@ -8,40 +8,44 @@ import java.util.List;
 
 public class CsvManager {
 
-    public void exportToCSVwithfilename(List<Expense> expenses,String filename){
-        String filelocation = "./File/Export/"+filename+".csv";
-        writeToCSV(filelocation, "description,category,amount,date");
+    public void exportToCSVwithfilename(List<Expense> expenses, String filename) {
+        String filelocation = "./File/Export/" + filename + ".csv";
+        writeToCSV(filelocation, "description,category,amount,date"); // header
         for (Expense expense : expenses) {
-            String tmp = expense.getDescription()+expense.getCategory()+expense.getAmount()+expense.getTimestamp();
-            writeToCSV(filelocation, tmp);
+            String text = expense.getDescription() + "," + expense.getCategory() + "," + expense.getAmount() + ","
+                    + expense.getTimestamp();
+            writeToCSV(filelocation, text);
         }
     }
-    
-    public void exportToCSV(List<Expense> expenses){
-        //Create filename
+
+    public void exportToCSV(List<Expense> expenses) {
+        // Create filename
         String date = LocalDate.now().toString();
-        String filename = "report"+date+".csv";
-        //filelocation
-        String filelocation = "./File/Logs/"+filename;
-        //Write
-        writeToCSV(filelocation, "description,category,amount,date");
+        String filename = "report" + date + ".csv";
+        // filelocation
+        String filelocation = "./File/Logs/" + filename;
+        // Write
+        writeToCSV(filelocation, "description,category,amount,date"); // header
         for (Expense expense : expenses) {
-            String tmp = expense.getDescription()+expense.getCategory()+expense.getAmount()+expense.getTimestamp();
-            writeToCSV(filelocation, tmp);
+            String text = expense.getDescription() + "," + expense.getCategory() + "," + expense.getAmount() + ","
+                    + expense.getTimestamp();
+            writeToCSV(filelocation, text);
         }
     }
-    private void writeToCSV(String filelocation,String text){
+
+    private void writeToCSV(String filelocation, String text) {
         BufferedWriter bw = null;
         FileWriter fw = null;
         File f = null;
         try {
             f = new File(filelocation);
-            fw = new FileWriter(f);
+            fw = new FileWriter(f, true);
             bw = new BufferedWriter(fw);
             bw.write(text);
+            bw.newLine();
         } catch (Exception e) {
             // TODO: handle exception
-        } finally{
+        } finally {
             try {
                 bw.close();
                 fw.close();

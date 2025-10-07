@@ -32,7 +32,8 @@ public class ConfigManager {
         List<String> categories = new ArrayList<>();
         for (String c : cats.split(",")) {
             String trimmed = c.trim();
-            if (!trimmed.isEmpty()) categories.add(trimmed);
+            if (!trimmed.isEmpty())
+                categories.add(trimmed);
         }
         return new Config(budget, categories);
     }

@@ -42,7 +42,7 @@ public class Setting extends JPanel{
 
         b1.addActionListener(e -> controller.showPage("More")); 
         budget.addActionListener(e -> controller.showPage("Budget"));
-        cat.addActionListener(e -> controller.showPage("Catagory"));
+        cat.addActionListener(e -> controller.showPage("CategoryPath"));
 
     }
     @Override

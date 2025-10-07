@@ -1,26 +1,30 @@
 package Page;
 
-import java.awt.*;
-import java.awt.geom.*;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.swing.*;
-import ButtonDesign.*;
+
 import Controller.AppController;
 import Service.AppContext;
 
-public class Add extends JPanel {
-    public Add(AppController controller, AppContext appContext) {
-        setLayout(null);
+public class RemoveCat extends JPanel {
 
-        JLabel l1 = new JLabel(" Add Your Transaction ");
-        l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
-        l1.setForeground(new Color(255, 255, 224));
-        l1.setBounds(20, 100, 400, 50);
-        add(l1);
+    public RemoveCat(AppController controller, AppContext appContext) {
+        setLayout(null);
 
         JButton b1 = new JButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -28,44 +32,33 @@ public class Add extends JPanel {
         b1.setForeground(Color.BLACK);
         add(b1);
 
-        LabeledInputCard description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
-        description.setBounds(30, 200, 300, 100);
-        add(description);
-
-        LabeledInputCard amount = new LabeledInputCard("Amount", "Example: 500, 1000");
-        amount.setBounds(30, 350, 300, 100);
-        add(amount);
-
         JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
-        c.setBounds(57, 500, 250, 50);
+        c.setBounds(57, 150, 250, 75);
         add(c);
 
-        JButton b2 = new JButton(" Comfirm ");
+        JButton b2 = new JButton(" Remove ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b2.setBounds(100, 600, 150, 60);
+        b2.setBounds(100, 450, 150, 60);
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        // Action
-        b1.addActionListener(e -> controller.showPage("Home"));
+        b1.addActionListener(e -> controller.showPage("CategoryPath"));
 
         b2.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                double tmp = Double.parseDouble(amount.getText().trim());
-                appContext.addExpense(description.getText(), tmp, c.getSelectedItem() + "");
-                description.setText("");
-                amount.setText("");
-                c.setSelectedIndex(0);
-                controller.showPage("Home");
+                try {
+                    appContext.RemoveCat((String) c.getSelectedItem());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
 
         });
-
         appContext.addListener(evt -> {
             if ("UpdateCatList".equals(evt.getPropertyName())) {
+
                 List<String> tmp = appContext.getCategoryService().getCategory();
                 c.removeAllItems();
                 for (String string : tmp) {
@@ -73,7 +66,6 @@ public class Add extends JPanel {
                 }
             }
         });
-
     }
 
     private JComboBox<String> province_to_combobox(List<String> s) {
@@ -85,7 +77,6 @@ public class Add extends JPanel {
 
     }
 
-    // Background Color
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

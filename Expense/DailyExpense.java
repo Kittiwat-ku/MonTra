@@ -10,20 +10,23 @@ public class DailyExpense {
         return expenses;
     }
 
-    public void addExpense(Expense expense){
+    public void addExpense(Expense expense) {
         expenses.add(expense);
     }
-    public double getRemining(double budget){
+
+    public double getRemining(double budget) {
         return budget - getSpent();
     }
-    public double getSpent(){
+
+    public double getSpent() {
         double total = 0;
         for (Expense expense : expenses) {
             total += expense.getAmount();
         }
         return total;
     }
-    public void clearExpenses(){
+
+    public void clearExpenses() {
         expenses.clear();
     }
 }

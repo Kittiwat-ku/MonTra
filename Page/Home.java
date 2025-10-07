@@ -9,9 +9,9 @@ import Service.AppContext;
 
 public class Home extends JPanel {
 
-    public Home(AppController controller,AppContext appContext) {
+    public Home(AppController controller, AppContext appContext) {
         setLayout(new BorderLayout());
-        setOpaque(false);    
+        setOpaque(false);
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
@@ -24,7 +24,7 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", initBudget));
             remainl2.setText(String.format("%,.2f", initBudget));
         } catch (Exception e) {
-            
+
         }
 
         JLabel budgetl3 = new JLabel("Budget");
@@ -35,14 +35,13 @@ public class Home extends JPanel {
         budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         budgetl2.setForeground(Color.WHITE);
         budgetl2.setBounds(50, 40, 200, 60);
-        
+
         budgetl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         budgetl3.setForeground(Color.WHITE);
         budgetl3.setBounds(20, 100, 150, 30);
         contentPanel.add(budgetl1);
         contentPanel.add(budgetl2);
         contentPanel.add(budgetl3);
-
 
         JLabel remainl3 = new JLabel("Remain");
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
@@ -52,7 +51,7 @@ public class Home extends JPanel {
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(Color.WHITE);
         remainl2.setBounds(270, 40, 200, 60);
-        
+
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         remainl3.setForeground(Color.WHITE);
         remainl3.setBounds(285, 100, 150, 30);
@@ -69,7 +68,6 @@ public class Home extends JPanel {
         line2.setForeground(Color.WHITE);
         line2.setBounds(240, 100, 150, 5);
         contentPanel.add(line2);
-        
 
         RoundedPanel chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setLayout(new BorderLayout());
@@ -102,54 +100,57 @@ public class Home extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        //Navbar
+        // Navbar
         JPanel navBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 20));
-        navBar.setOpaque(false); 
+        navBar.setOpaque(false);
 
-        CircleButton homebt = new CircleButton("🏠");
+        CircleButton homebt = new CircleButton("📊");
         homebt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 23));
-        homebt.setPreferredSize(new Dimension(50,50));
+        homebt.setPreferredSize(new Dimension(50, 50));
 
         CircleButton morebt = new CircleButton("...");
         morebt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 23));
-        morebt.setPreferredSize(new Dimension(50,50));
+        morebt.setPreferredSize(new Dimension(50, 50));
 
         CircleButton addbt = new CircleButton("➕");
         addbt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 35));
-        addbt.setPreferredSize(new Dimension(80,80));
+        addbt.setPreferredSize(new Dimension(80, 80));
 
         navBar.add(homebt);
         navBar.add(addbt);
         navBar.add(morebt);
-        
+
         add(navBar, BorderLayout.SOUTH);
 
-        //Action
-        homebt.setToolTipText("Home");
+        // Action
+        homebt.setToolTipText("Summary");
         addbt.setToolTipText("Add");
         morebt.setToolTipText("More");
-        
-        homebt.addActionListener(e -> controller.showPage("Home"));
+
+        homebt.addActionListener(e -> controller.showPage("Sumpath"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
         appContext.addListener(evt -> {
-        if ("reload".equals(evt.getPropertyName())) {
-            //Refresh value
-            remainl2.setText(String.format("%,.2f", appContext.getRemining()));
-            budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
-            totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
+            if ("reload".equals(evt.getPropertyName())) {
+                // Refresh value
+                remainl2.setText(String.format("%,.2f", appContext.getRemining()));
+                budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
+                totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
 
-            //color responsive
-            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
-            if (tmp < 50 && tmp > 0) {
-                remainl2.setForeground(Color.yellow);
-            } else if(tmp <= 0){
-                remainl2.setForeground(Color.red);
+                // color responsive
+                double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) * 100; // find
+                                                                                                                  // percent
+                                                                                                                  // of
+                                                                                                                  // remaining
+                if (tmp < 50 && tmp > 0) {
+                    remainl2.setForeground(Color.yellow);
+                } else if (tmp <= 0) {
+                    remainl2.setForeground(Color.red);
+                }
+
             }
-            
-        }
-       });
+        });
 
     }
 
@@ -167,11 +168,11 @@ public class Home extends JPanel {
         Point2D start = new Point2D.Float(0, 0);
         Point2D end = new Point2D.Float(w, h);
 
-        float[] dist = {0.0f, 0.5f, 1.0f};
+        float[] dist = { 0.0f, 0.5f, 1.0f };
         Color[] colors = {
-            new Color(0x4A5C58),
-            new Color(0x0A5C36),
-            new Color(0x1F2C2E)
+                new Color(0x4A5C58),
+                new Color(0x0A5C36),
+                new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);

@@ -15,7 +15,9 @@ public class CategoryService {
         this.config = configManager.load();
     }
 
-    public List<String> list() { return config.getCategories(); }
+    public List<String> list() {
+        return config.getCategories();
+    }
 
     public void add(String name) throws IOException {
         config.addCategory(name);
@@ -32,12 +34,14 @@ public class CategoryService {
         configManager.save(config);
     }
 
-    public double getDailyBudget() { 
-        return config.getDailyBudget(); 
+    public double getDailyBudget() {
+        return config.getDailyBudget();
     }
-    public List<String> getCategory(){
+
+    public List<String> getCategory() {
         return config.getCategories();
     }
+
     public void addCategory(String name) throws IOException {
         config.addCategory(name);
         configManager.save(config);
