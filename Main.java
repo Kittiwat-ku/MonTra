@@ -43,6 +43,10 @@ public class Main extends JFrame {
         mainPanel = new JPanel(cardLayout);
         controller = new AppController(cardLayout, mainPanel);
 
+        Image icon = new ImageIcon(getClass().getResource("/image/logo1.png")).getImage();
+        setIconImage(icon);
+        setVisible(true);
+
         // Page
         mainPanel.add(new Welcome(controller, appContext), "Welcome");
         mainPanel.add(new Home(controller, appContext), "Home");
