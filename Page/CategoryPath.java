@@ -6,35 +6,34 @@ import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
 
-public class CategoryPath extends JPanel{
+public class CategoryPath extends JPanel {
 
-    public CategoryPath(AppController controller){
-        setLayout( null);
+    public CategoryPath(AppController controller) {
+        setLayout(null);
 
-        
-        JButton b1 = new JButton("← Back"); 
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
-        b1.setBounds(0, 0, 100, 30); 
-        b1.setForeground(Color.BLACK); 
+        JButton b1 = new JButton("← Back");
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b1.setBounds(0, 0, 100, 30);
+        b1.setForeground(Color.BLACK);
         add(b1);
-        
-        JLabel l1 = new JLabel(" Set Category "); 
-        l1.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
-        l1.setForeground(new Color(255, 255, 224)); 
-        l1.setBounds(83, 90, 400, 50); 
-        add(l1); 
 
-        JLabel l2 = new JLabel(" Remove Category "); 
-        l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
-        l2.setForeground(new Color(255, 255, 224)); 
-        l2.setBounds(50, 390, 400, 50); 
-        add(l2); 
+        JLabel l1 = new JLabel(" Set Category ");
+        l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        l1.setForeground(new Color(255, 255, 224));
+        l1.setBounds(83, 90, 400, 50);
+        add(l1);
+
+        JLabel l2 = new JLabel(" Remove Category ");
+        l2.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        l2.setForeground(new Color(255, 255, 224));
+        l2.setBounds(50, 390, 400, 50);
+        add(l2);
 
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
         JButton add = new MenuCardButton("/image/add.png", imgW, imgH, radius);
-        add.setBounds(75, 150,  cardW, cardH);
+        add.setBounds(75, 150, cardW, cardH);
         add(add);
 
         JButton remove = new MenuCardButton("/image/remove.png", imgW, imgH, radius);
@@ -45,6 +44,7 @@ public class CategoryPath extends JPanel{
         add.addActionListener(e -> controller.showPage("SetCat"));
         remove.addActionListener(e -> controller.showPage("RemoveCat"));
     }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -57,14 +57,14 @@ public class CategoryPath extends JPanel{
         int h = getHeight();
 
         Point2D start = new Point2D.Float(0, 0);
-        Point2D end   = new Point2D.Float(w, h);
+        Point2D end = new Point2D.Float(w, h);
 
-        float[] dist = {0.0f, 0.5f, 1.0f};
+        float[] dist = { 0.0f, 0.5f, 1.0f };
 
         Color[] colors = {
-            new Color(0x4A5C58),
-            new Color(0x0A5C36),
-            new Color(0x1F2C2E)
+                new Color(0x4A5C58),
+                new Color(0x0A5C36),
+                new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
@@ -72,5 +72,5 @@ public class CategoryPath extends JPanel{
         g2d.fillRect(0, 0, w, h);
 
     }
-    
+
 }

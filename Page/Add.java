@@ -1,7 +1,7 @@
-package Page; 
+package Page;
 
-import java.awt.*; 
-import java.awt.geom.*; 
+import java.awt.*;
+import java.awt.geom.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,23 +10,23 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
-import Service.AppContext; 
+import Service.AppContext;
 
-public class Add extends JPanel{ 
-    public Add(AppController controller,AppContext appContext){ 
-        setLayout(null); 
-        
-        JLabel l1 = new JLabel(" Add Your Transaction "); 
-        l1.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
-        l1.setForeground(new Color(255, 255, 224)); 
-        l1.setBounds(20, 100, 400, 50); 
-        add(l1); 
-        
-        JButton b1 = new JButton("← Back"); 
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
-        b1.setBounds(0, 0, 100, 30); 
-        b1.setForeground(Color.BLACK); 
-        add(b1); 
+public class Add extends JPanel {
+    public Add(AppController controller, AppContext appContext) {
+        setLayout(null);
+
+        JLabel l1 = new JLabel(" Add Your Transaction ");
+        l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        l1.setForeground(new Color(255, 255, 224));
+        l1.setBounds(20, 100, 400, 50);
+        add(l1);
+
+        JButton b1 = new JButton("← Back");
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b1.setBounds(0, 0, 100, 30);
+        b1.setForeground(Color.BLACK);
+        add(b1);
 
         LabeledInputCard description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
         description.setBounds(30, 200, 300, 100);
@@ -35,46 +35,55 @@ public class Add extends JPanel{
         LabeledInputCard amount = new LabeledInputCard("Amount", "Example: 500, 1000");
         amount.setBounds(30, 350, 300, 100);
         add(amount);
-        
+
         JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
-        c.setBounds(57, 500, 250, 50); 
-        add(c); 
+        c.setBounds(57, 500, 250, 50);
+        add(c);
 
         JButton b2 = new JButton(" Comfirm ");
-        b2.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
-        b2.setBounds(100, 600, 150, 60); 
-        b2.setForeground(Color.BLACK); 
-        add(b2); 
-        
-        // Action
-        b1.addActionListener(e -> controller.showPage("Home")); 
+        b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b2.setBounds(100, 600, 150, 60);
+        b2.setForeground(Color.BLACK);
+        add(b2);
 
+        // Action
+        b1.addActionListener(e -> controller.showPage("Home"));
 
         b2.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+
                 double tmp = Double.parseDouble(amount.getText().trim());
-                appContext.addExpense(description.getText(), tmp, c.getSelectedItem()+"");
+                appContext.addExpense(description.getText(), tmp, c.getSelectedItem() + "");
+                description.setText("");
+                amount.setText("");
+                c.setSelectedIndex(0);
                 controller.showPage("Home");
             }
-            
+
         });
 
-
+        appContext.addListener(evt -> {
+            if ("UpdateCatList".equals(evt.getPropertyName())) {
+                List<String> tmp = appContext.getCategoryService().getCategory();
+                c.removeAllItems();
+                for (String string : tmp) {
+                    c.addItem(string);
+                }
+            }
+        });
 
     }
 
-
-        private JComboBox<String> province_to_combobox(List<String> s){
-            JComboBox<String> tmp = new JComboBox<>();
-            for (String string : s) {
-                tmp.addItem(string);
-            }
-            return tmp;
-            
+    private JComboBox<String> province_to_combobox(List<String> s) {
+        JComboBox<String> tmp = new JComboBox<>();
+        for (String string : s) {
+            tmp.addItem(string);
         }
+        return tmp;
+
+    }
 
     // Background Color
     @Override
@@ -89,18 +98,18 @@ public class Add extends JPanel{
         int h = getHeight();
 
         Point2D start = new Point2D.Float(0, 0);
-        Point2D end   = new Point2D.Float(w, h);
+        Point2D end = new Point2D.Float(w, h);
 
-        float[] dist = {0.0f, 0.5f, 1.0f};
+        float[] dist = { 0.0f, 0.5f, 1.0f };
 
         Color[] colors = {
-            new Color(0x4A5C58),
-            new Color(0x0A5C36),
-            new Color(0x1F2C2E)
+                new Color(0x4A5C58),
+                new Color(0x0A5C36),
+                new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
         g2d.setPaint(lgp);
         g2d.fillRect(0, 0, w, h);
-}
+    }
 }

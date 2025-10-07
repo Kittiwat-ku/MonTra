@@ -12,18 +12,22 @@ public class Config {
         this.dailyBudget = dailyBudget;
         this.categories = new ArrayList<>(categories);
     }
+
     public double getDailyBudget() {
-        return dailyBudget; 
+        return dailyBudget;
     }
+
     public void setDailyBudget(double v) {
-        this.dailyBudget = v; 
+        this.dailyBudget = v;
     }
+
     public List<String> getCategories() {
         return Collections.unmodifiableList(categories);
     }
 
     public void addCategory(String c) {
-        if (c != null && !c.isBlank() && !categories.contains(c)) categories.add(c);
+        if (c != null && !c.isBlank() && !categories.contains(c))
+            categories.add(c);
     }
 
     public void removeCategory(String c) {
