@@ -29,4 +29,9 @@ public class DailyExpense {
     public void clearExpenses() {
         expenses.clear();
     }
+
+    public void setExpenses(List<Expense> expenses){
+        expenses.clear();
+        if (expenses != null) expenses.addAll(expenses);
+    }
 }

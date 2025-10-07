@@ -5,7 +5,12 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+import java.util.List;   
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
@@ -14,6 +19,8 @@ import Service.AppContext;
 public class Home extends JPanel {
 
     public Home(AppController controller,AppContext appContext) {
+
+        
         setLayout(new BorderLayout());
         setOpaque(false);    
         JPanel contentPanel = new JPanel(null);
@@ -26,7 +33,7 @@ public class Home extends JPanel {
         try {
             double initBudget = appContext.getCategoryService().getDailyBudget();
             budgetl2.setText(String.format("%,.2f", initBudget));
-            remainl2.setText(String.format("%,.2f", initBudget));
+            remainl2.setText(String.format("%,.2f", appContext.getRemining()));
         } catch (Exception e) {
             
         }
@@ -105,7 +112,7 @@ public class Home extends JPanel {
         head.add(h1); head.add(h2); head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
 
-        JPanel listContent = showlist("null");
+        JPanel listContent = showlist("./File/TodaySpent/todayTEMP.txt");
         JScrollPane scroll = new JScrollPane(listContent);
         scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         listPanel.add(scroll, BorderLayout.CENTER);
@@ -169,7 +176,7 @@ public class Home extends JPanel {
             } else if(tmp <= 0){
                 remainl2.setForeground(Color.red);
             }
-            
+
         }
        });
 
@@ -216,6 +223,7 @@ public class Home extends JPanel {
 
         return panel;
     }
+
 
     @Override
     protected void paintComponent(Graphics g) {

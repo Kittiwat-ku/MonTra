@@ -6,13 +6,13 @@ public class Expense {
     private String description;
     private double amount;
     private String category;
-    private LocalDateTime timestamp;
+    private String date;
 
-    public Expense(String description, double amount, String category, LocalDateTime timestamp) {
+    public Expense(String description, double amount, String category, String date) {
         setDescription(description);
         setAmount(amount);
         setCategory(category);
-        setTimestamp(timestamp);
+        setDate(date);
 
     }
 
@@ -43,11 +43,15 @@ public class Expense {
 
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public String getDate() {
+        return date;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setDate(String date) {
+        this.date = date;
+    }
+        @Override
+        public String toString() {
+        return String.format("%s | %s | %.2f | %s", date, category, amount, description);
     }
 }

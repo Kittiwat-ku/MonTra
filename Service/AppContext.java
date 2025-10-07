@@ -1,11 +1,13 @@
 package Service;
 
+import java.awt.List;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 
 import Config.ConfigManager;
 import Expense.DailyExpense;
+import Expense.Expense;
 
 public class AppContext {
     private final ConfigManager cfgMgr;
@@ -64,6 +66,7 @@ public class AppContext {
 
     public void addExpense(String description, Double amount, String category) {
         expenseService.addExpense(description, amount, category);
+        expenseService.writetemp(dailyExpense.getExpenses());
         pcs.firePropertyChange("reload", null, null);
     }
 
