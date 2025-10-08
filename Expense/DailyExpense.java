@@ -33,4 +33,8 @@ public class DailyExpense {
     public void setExpenses(List<Expense> expenses){
         this.expenses = expenses;
     }
+
+    public void removeAt(int index){
+            expenses.remove(index);
+    }
 }

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.io.IOException;
 
 import javax.swing.*;
 import ButtonDesign.LabeledInputCard;
@@ -40,7 +41,11 @@ public class Ep extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                appContext.getExpenseService().exportToCSV(description.getText());
+                try {
+                    appContext.removeExpense(Integer.parseInt(description.getText()));
+                } catch (NumberFormatException | IOException e1) {
+                    e1.printStackTrace();
+                }
                 description.setText("");
                 controller.showPage("Home");
             }

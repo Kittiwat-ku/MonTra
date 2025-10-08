@@ -23,16 +23,21 @@ public class ExpenseService {
 
     public void addExpense(String description, double amount, String category) throws IOException {
         dailyExpense.addExpense(new Expense(description, category, amount, LocalDateTime.now().toString()));
-        tempExpenseStore.appendToday(new Expense(description, category, amount, LocalDate.now().toString()));
+        tempExpenseStore.writeAllToday(dailyExpense.getExpenses());
     }
 
-    public void startWriting(double budget) throws IOException {
-        tempExpenseStore.rolloverIfNewDay(budget);
+    public void startProgram(double budget) throws IOException {
+        // tempExpenseStore.rolloverIfNewDay(budget);
+        tempExpenseStore.exportTodayToLogs(budget);
         dailyExpense.setExpenses(tempExpenseStore.readToday());
     }
 
     public void exportToCSV(String filename) {
         csvManager.exportToCSVwithfilename(dailyExpense.getExpenses(), filename);
     }
-
+    public void removeExpense(int index) throws IOException{
+        dailyExpense.removeAt(index);
+        tempExpenseStore.writeAllToday(dailyExpense.getExpenses());
+        
+    }
 }

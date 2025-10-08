@@ -30,7 +30,7 @@ public class AppContext {
         this.tempExpenseStore = tempExpenseStore;
 
         // dailyExpense.setExpenses(tempExpenseStore.readToday());
-        this.expenseService.startWriting(categoryService.getDailyBudget());
+        this.expenseService.startProgram(categoryService.getDailyBudget());
 
     }
 
@@ -87,5 +87,9 @@ public class AppContext {
     public void RemoveCat(String name) throws IOException {
         categoryService.remove(name);
         pcs.firePropertyChange("UpdateCatList", null, null);
+    }
+    public void removeExpense(int index) throws IOException{
+        expenseService.removeExpense(index);
+        pcs.firePropertyChange("reload", null, null);
     }
 }

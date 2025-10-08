@@ -1,0 +1,5 @@
+# summary,1200.00,2,200.00,1000.00
+# summary,budget,transactions,total_spent,remaining_end
+description,category,amount,date,remaining
+test2,Travel,100.00,2025-10-09T03:00:20.768583300,1100.00
+test4,Food,100.00,2025-10-09T03:00:56.007464,1000.00
