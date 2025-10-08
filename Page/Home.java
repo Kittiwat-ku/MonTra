@@ -5,12 +5,8 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import java.util.List;   
+   
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
@@ -37,7 +33,6 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", initBudget));
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f", appContext.getDailyExpense().getSpent()));
-            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
 
         } catch (Exception e) {
             
@@ -46,11 +41,11 @@ public class Home extends JPanel {
         JLabel budgetl3 = new JLabel("Budget");
         budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         budgetl1.setForeground(Color.WHITE);
-        budgetl1.setBounds(10, 40, 200, 60);
+        budgetl1.setBounds(20, 40, 200, 60);
 
         budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         budgetl2.setForeground(Color.WHITE);
-        budgetl2.setBounds(30, 40, 200, 60);
+        budgetl2.setBounds(50, 40, 200, 60);
         
         budgetl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         budgetl3.setForeground(Color.WHITE);
@@ -63,11 +58,11 @@ public class Home extends JPanel {
         JLabel remainl3 = new JLabel("Remain");
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         remainl1.setForeground(Color.WHITE);
-        remainl1.setBounds(230, 40, 200, 60);
+        remainl1.setBounds(250, 40, 200, 60);
 
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
-        remainl2.setBounds(250, 40, 200, 60);
+        remainl2.setBounds(270, 40, 200, 60);
         
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         remainl3.setForeground(Color.WHITE);
@@ -78,7 +73,7 @@ public class Home extends JPanel {
 
         JSeparator line1 = new JSeparator(SwingConstants.HORIZONTAL);
         line1.setForeground(Color.WHITE);
-        line1.setBounds(0, 100, 122, 5);
+        line1.setBounds(15, 100, 122, 5);
         contentPanel.add(line1);
 
         JSeparator line2 = new JSeparator(SwingConstants.HORIZONTAL);
@@ -117,8 +112,9 @@ public class Home extends JPanel {
         head.add(h1); head.add(h2); head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
 
-        JPanel listContent = showlist("./File/TodaySpent/todayTEMP.txt");
+        JPanel listContent = showlist("./File/Temp/todayTemp.csv");
         JScrollPane scroll = new JScrollPane(listContent);
+        // scroll.getViewport().setViewPosition(new Point(0,0));
         scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(50, 500, 280, 180);
@@ -199,6 +195,7 @@ public class Home extends JPanel {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             int index = 1;
+            line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length >= 3) {

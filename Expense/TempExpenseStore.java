@@ -14,6 +14,7 @@ public class TempExpenseStore {
     private static final Path TEMP_FILE = TEMP_DIR.resolve("TodayTemp.csv");
     private static final Path DATE_TRACK_FILE = TEMP_DIR.resolve("last_date.txt");
     private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Path LOGS_DIR = Paths.get("./File/Logs");
 
     public TempExpenseStore() throws IOException {
         initTempFile(); //เช็ควัน
@@ -32,7 +33,7 @@ public class TempExpenseStore {
                 Files.deleteIfExists(TEMP_FILE);
                 resetToday();
                 Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-                System.out.println("ล้าง Temp เก่าสำหรับวันใหม่ " + today);
+                System.out.println("clear old Temp " + today);
                 return;
             }
         }
@@ -90,6 +91,71 @@ public class TempExpenseStore {
         Files.writeString(TEMP_FILE, System.lineSeparator() + row,
                 StandardCharsets.UTF_8, StandardOpenOption.APPEND);
     }
+public void exportTodayToLogs(double budget) throws IOException {
+    // --- 1. อ่านวันล่าสุดจากไฟล์ last_date.txt ---
+    String lastDateStr = "";
+    if (Files.exists(DATE_TRACK_FILE)) {
+        lastDateStr = Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim();
+    }
+
+    LocalDate lastDate = lastDateStr.isEmpty() ? null : LocalDate.parse(lastDateStr);
+    LocalDate today = LocalDate.now();
+
+    // --- 2. ถ้าวันใน last_date.txt ยังเป็นวันเดียวกับวันนี้ -> ไม่ต้อง export ---
+    if (lastDate != null && lastDate.equals(today)) {
+        System.out.println("same day (" + today + ") no export ");
+        return;
+    }
+
+    // --- 3. อ่านข้อมูลวันนี้จาก Temp ---
+    List<Expense> todayExpenses = readToday();
+    if (todayExpenses.isEmpty()) {
+        System.out.println(" No data is temp " + lastDateStr + " — skip export");
+        return;
+    }
+
+    // ใช้วันที่ใน Temp เป็นชื่อไฟล์ log (ถ้ามีข้อมูล) หรือใช้ lastDate แทน
+    String exportDate = (lastDate != null ? lastDate.toString() : today.toString());
+
+    // --- 4. เตรียมไฟล์ Logs ปลายทาง ---
+    if (!Files.exists(LOGS_DIR)) Files.createDirectories(LOGS_DIR);
+    Path logFile = LOGS_DIR.resolve(exportDate + ".csv");
+
+    // --- 5. เขียนข้อมูลพร้อม remaining ---
+    double remaining = budget;
+    double totalSpent = 0.0;
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("# summary,budget,transactions,total_spent,remaining_end\n");
+    sb.append("description,category,amount,date,remaining\n");
+
+    for (Expense e : todayExpenses) {
+        double amt = e.getAmount();
+        totalSpent += amt;
+        remaining -= amt;
+
+        sb.append(escape(e.getDescription())).append(",")
+          .append(escape(e.getCategory())).append(",")
+          .append(toStr(amt)).append(",")
+          .append(e.getDate()).append(",")
+          .append(toStr(remaining)).append("\n");
+    }
+
+    // เพิ่มบรรทัดสรุปด้านบน
+    sb.insert(0, "# summary," + toStr(budget) + "," + todayExpenses.size() + ","
+            + toStr(totalSpent) + "," + toStr(remaining) + "\n");
+
+    // --- 6. เขียนไฟล์ Logs ---
+    Files.writeString(logFile, sb.toString(), StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+    System.out.println(" Export success -> " + logFile.getFileName());
+
+    // --- 7. อัปเดต last_date.txt ให้เป็นวันปัจจุบัน ---
+    Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+
+}
+
 
     // ---------- helper ----------
     private static String toStr(double v) { return String.format(Locale.US, "%.2f", v); }

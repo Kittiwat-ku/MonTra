@@ -1,6 +1,5 @@
 package Expense;
 
-import java.time.LocalDateTime;
 
 public class Expense {
     private String description;

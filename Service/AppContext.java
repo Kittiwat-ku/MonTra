@@ -5,7 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 
 import Config.ConfigManager;
 import Expense.DailyExpense;
@@ -29,7 +29,8 @@ public class AppContext {
         this.expenseService = expenseService;
         this.tempExpenseStore = tempExpenseStore;
 
-        dailyExpense.setExpenses(tempExpenseStore.readToday());
+        // dailyExpense.setExpenses(tempExpenseStore.readToday());
+        this.expenseService.startWriting(categoryService.getDailyBudget());
 
     }
 
@@ -74,7 +75,7 @@ public class AppContext {
 
     public void addExpense(String description, Double amount, String category) throws IOException {
         expenseService.addExpense(description, amount, category);
-        tempExpenseStore.appendToday(new Expense(description, category, amount, LocalDate.now().toString()));
+        // tempExpenseStore.appendToday(new Expense(description, category, amount, LocalDate.now().toString()));
         pcs.firePropertyChange("reload", null, null);
     }
 
