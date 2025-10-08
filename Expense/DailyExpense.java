@@ -29,4 +29,8 @@ public class DailyExpense {
     public void clearExpenses() {
         expenses.clear();
     }
+
+    public void setExpenses(List<Expense> expenses){
+        this.expenses = expenses;
+    }
 }
