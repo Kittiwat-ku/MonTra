@@ -86,7 +86,6 @@ public class Home extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(75, 200, 220, 220);
 
-        // JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
 
@@ -114,7 +113,7 @@ public class Home extends JPanel {
 
         JPanel listContent = showlist("./File/Temp/todayTemp.csv");
         JScrollPane scroll = new JScrollPane(listContent);
-        // scroll.getViewport().setViewPosition(new Point(0,0));
+        scroll.getViewport().setViewPosition(new Point(0,0));
         scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(40, 500, 280, 180);
@@ -173,6 +172,7 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
             remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
+            reloadList(listContent, "./File/Temp/todayTemp.csv");
         }
        });
 
@@ -220,8 +220,11 @@ public class Home extends JPanel {
 
                     panel.add(row);
                     index++;
+
                 }
+
             }
+            panel.setPreferredSize(new Dimension(0,(index*40)+250));
         } catch (IOException e) {
             e.printStackTrace();
             JLabel error = new JLabel(" NO Data use ", SwingConstants.CENTER);
@@ -231,6 +234,15 @@ public class Home extends JPanel {
 
         return panel;
     }
+    private void reloadList(JPanel listContent, String filePath) {
+    listContent.removeAll();                // ล้างข้อมูลเก่าออก
+    JPanel newPanel = showlist(filePath);   // สร้าง panel ใหม่จากไฟล์
+    for (Component c : newPanel.getComponents()) {
+        listContent.add(c);                 // loop เพิ่ม componentทุกตัว ใหม่เข้า listContent
+    }
+    listContent.revalidate();               // บอก layout manager ให้จัดใหม่
+    listContent.repaint();                  // วาดใหม่
+}
 
 
     @Override
