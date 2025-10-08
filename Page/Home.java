@@ -30,10 +30,15 @@ public class Home extends JPanel {
         JLabel budgetl2 = new JLabel(" ");
         JLabel remainl1 = new JLabel("฿");
         JLabel remainl2 = new JLabel(" ");
+        JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
+        // JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         try {
             double initBudget = appContext.getCategoryService().getDailyBudget();
             budgetl2.setText(String.format("%,.2f", initBudget));
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
+            totalSpend.setText("Total Spend: "+String.format("%,.2f", appContext.getDailyExpense().getSpent()));
+            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
+
         } catch (Exception e) {
             
         }
@@ -61,7 +66,7 @@ public class Home extends JPanel {
         remainl1.setBounds(250, 40, 200, 60);
 
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        remainl2.setForeground(Color.WHITE);
+        remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
         remainl2.setBounds(270, 40, 200, 60);
         
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -86,7 +91,7 @@ public class Home extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(75, 200, 220, 220);
 
-        JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
+        // JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
 
@@ -164,23 +169,29 @@ public class Home extends JPanel {
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
+        
+
         appContext.addListener(evt -> {
         if ("reload".equals(evt.getPropertyName())) {
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
-
-            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
-            if (tmp < 50 && tmp > 0) {
-                remainl2.setForeground(Color.yellow);
-            } else if(tmp <= 0){
-                remainl2.setForeground(Color.red);
-            }
-
+            remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
         }
        });
 
     }
+
+    Color findcolor(double remaining,double budget){
+        double tmp = (remaining/ budget) *100; // find percent of remaining
+            if (tmp < 50 && tmp > 0) {
+                return Color.yellow;
+            } else if(tmp <= 0){
+                return Color.red;
+            }
+            return Color.WHITE;
+    }
+
     private JPanel showlist(String filePath) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
