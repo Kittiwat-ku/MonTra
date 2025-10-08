@@ -121,7 +121,7 @@ public class Home extends JPanel {
         JScrollPane scroll = new JScrollPane(listContent);
         scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         listPanel.add(scroll, BorderLayout.CENTER);
-        listPanel.setBounds(50, 500, 280, 180);
+        listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
 
         JLabel time = new JLabel();
