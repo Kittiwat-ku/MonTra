@@ -207,21 +207,6 @@ public class Home extends JPanel {
                 delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 row.add(delete, BorderLayout.EAST);
 
-                delete.addActionListener(e -> {
-                    int confirm = JOptionPane.showConfirmDialog(
-                            null,
-                            "You Want to delete This list?",
-                            "Confirm",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE
-                    );
-
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        model.remove(index);
-
-                        JOptionPane.showMessageDialog(null, "SUCCESSFULLY", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                });
             }
 
             if (isSelected) row.setBackground(new Color(230, 240, 255));
@@ -235,18 +220,6 @@ public class Home extends JPanel {
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
-    }
-
-    private void saveListToFile(DefaultListModel<String[]> model, String filePath) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            writer.println("Description,Type,Price");
-            for (int i = 0; i < model.size(); i++) {
-                String[] row = model.getElementAt(i);
-                writer.println(row[0] + "," + row[1] + "," + row[2]);
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Can't Sav", "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     private void reloadList(JScrollPane scroll, String filePath) {
