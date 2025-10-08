@@ -24,24 +24,27 @@ public class TempExpenseStore {
      * 
     */
     private void initTempFile() throws IOException {
-        if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
-        LocalDate today = LocalDate.now();
+    if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
+    LocalDate today = LocalDate.now();
 
-        if (Files.exists(DATE_TRACK_FILE)) {
-            String lastDate = Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim();
-            if (!lastDate.equals(today.toString())) {
-                Files.deleteIfExists(TEMP_FILE);
-                resetToday();
-                Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-                System.out.println("clear old Temp " + today);
-                return;
-            }
-        }
+    String last = Files.exists(DATE_TRACK_FILE)
+            ? Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim()
+            : "";
 
-        if (!Files.exists(TEMP_FILE)) {
-            resetToday();
-            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-        }
+    // เคสครั้งแรก: ยังไม่มีไฟล์ใด ๆ → สร้าง Temp + ตั้ง last_date = today
+    if (!Files.exists(TEMP_FILE) && last.isEmpty()) {
+        resetToday();
+        Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+        return;
+    }
+
+    // ถ้ามี last_date อยู่แล้ว และ TEMP_FILE ไม่มี → สร้าง header ให้พร้อมใช้งาน
+    if (!Files.exists(TEMP_FILE)) {
+        resetToday(); // แค่สร้าง header ว่าง ๆ
+    }
+
+    // สำคัญ: ถ้าวันเปลี่ยน "อย่า reset ที่นี่"
+    // ปล่อยให้ไปทำใน rolloverIfNewDay(budget)
     }
 
     /** 
@@ -155,7 +158,69 @@ public void exportTodayToLogs(double budget) throws IOException {
     Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
 
 }
+    public boolean rolloverIfNewDay(double budget) throws IOException {
+    if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
 
+    String lastStr = Files.exists(DATE_TRACK_FILE)
+            ? Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim()
+            : "";
+    LocalDate today = LocalDate.now();
+
+    // ถ้ายังไม่เคยมี last_date ให้ตั้งเป็นวันนี้แล้วจบ
+    if (lastStr.isEmpty()) {
+        Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+        if (!Files.exists(TEMP_FILE)) resetToday();
+        return false; // ไม่มีการ rollover
+    }
+
+    LocalDate lastDate = LocalDate.parse(lastStr);
+    if (!lastDate.isBefore(today)) {
+        // ยังวันเดิม/อนาคต (ผิดเวลา) → ไม่ rollover
+        return false;
+    }
+
+    // ---- ถึงตรงนี้แปลว่า "ข้ามวัน" แล้ว → ต้อง export วันเก่า (lastDate) ก่อน ----
+    List<Expense> items = readToday(); // อ่านจาก Temp ที่ยังเก็บของวันเก่าอยู่
+    if (items.isEmpty()) {
+        // ไม่มีรายการก็ยังคงอัปเดตวันและ reset เพื่อเริ่มวันใหม่
+        Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+        resetToday();
+        return true;
+    }
+
+    // เขียนลง Logs โดยใช้ชื่อไฟล์ = lastDate
+    if (!Files.exists(LOGS_DIR)) Files.createDirectories(LOGS_DIR);
+    Path logFile = LOGS_DIR.resolve(lastDate.toString() + ".csv");
+
+    double remaining = budget;
+    double totalSpent = 0.0;
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("# summary,budget,transactions,total_spent,remaining_end\n");
+    sb.append("description,category,amount,date,remaining\n");
+
+    for (Expense e : items) {
+        double amt = e.getAmount();
+        totalSpent += amt;
+        remaining -= amt;
+
+        sb.append(escape(e.getDescription())).append(",")
+          .append(escape(e.getCategory())).append(",")
+          .append(toStr(amt)).append(",")
+          .append(e.getDate()).append(",")
+          .append(toStr(remaining)).append("\n");
+    }
+    sb.insert(0, "# summary," + toStr(budget) + "," + items.size() + ","
+                  + toStr(totalSpent) + "," + toStr(remaining) + "\n");
+
+    Files.writeString(logFile, sb.toString(), StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+    // เสร็จแล้วเริ่มวันใหม่: reset Temp และตั้ง last_date = today
+    resetToday();
+    Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+    return true;
+}
 
     // ---------- helper ----------
     private static String toStr(double v) { return String.format(Locale.US, "%.2f", v); }

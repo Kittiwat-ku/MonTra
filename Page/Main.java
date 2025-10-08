@@ -1,3 +1,6 @@
+package Page;
+
+
 import javax.swing.*;
 
 import Config.ConfigManager;
@@ -36,8 +39,8 @@ public class Main extends JFrame {
         categoryService = new CategoryService(configManager);
         dailyExpense = new DailyExpense();
         csvManager = new CsvManager();
-        expenseService = new ExpenseService(csvManager, dailyExpense);
         tempExpenseStore = new TempExpenseStore();
+        expenseService = new ExpenseService(csvManager, dailyExpense,tempExpenseStore);
         appContext = new AppContext(configManager, categoryService, dailyExpense, expenseService,tempExpenseStore);
         
 

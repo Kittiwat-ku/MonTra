@@ -27,8 +27,8 @@ public class ExpenseService {
     }
 
     public void startWriting(double budget) throws IOException {
+        tempExpenseStore.rolloverIfNewDay(budget);
         dailyExpense.setExpenses(tempExpenseStore.readToday());
-        tempExpenseStore.exportTodayToLogs(budget);
     }
 
     public void exportToCSV(String filename) {
