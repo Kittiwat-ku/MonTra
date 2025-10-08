@@ -5,16 +5,13 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class RoundedPanel extends JPanel {
-    private int arcWidth;
-    private int arcHeight;
-    private Color backgroundColor;
-    private Color borderColor;
-    private int borderThickness;
+    private int arcW, arcH, borderThickness;
+    private Color bgColor, borderColor;
 
-    public RoundedPanel(int arcWidth, int arcHeight, Color backgroundColor, Color borderColor, int borderThickness) {
-        this.arcWidth = arcWidth;
-        this.arcHeight = arcHeight;
-        this.backgroundColor = backgroundColor == null ? getBackground() : backgroundColor;
+    public RoundedPanel(int arcW, int arcH, Color bgColor, Color borderColor, int borderThickness) {
+        this.arcW = arcW;
+        this.arcH = arcH;
+        this.bgColor = (bgColor != null) ? bgColor : getBackground();
         this.borderColor = borderColor;
         this.borderThickness = borderThickness;
         setOpaque(false);
@@ -25,21 +22,19 @@ public class RoundedPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int w = getWidth();
-        int h = getHeight();
+        int w = getWidth(), h = getHeight();
+        int half = borderThickness / 2;
 
-        g2.setColor(backgroundColor);
-        g2.fillRoundRect(0, 0, w, h, arcWidth, arcHeight);
+        g2.setColor(bgColor);
+        g2.fillRoundRect(0, 0, w, h, arcW, arcH);
 
         if (borderColor != null && borderThickness > 0) {
             g2.setStroke(new BasicStroke(borderThickness));
             g2.setColor(borderColor);
-            int half = borderThickness / 2;
-            g2.drawRoundRect(half, half, w - borderThickness, h - borderThickness, arcWidth, arcHeight);
+            g2.drawRoundRect(half, half, w - borderThickness, h - borderThickness, arcW, arcH);
         }
 
-        Shape clip = new RoundRectangle2D.Float(0, 0, w, h, arcWidth, arcHeight);
-        g2.setClip(clip);
+        g2.setClip(new RoundRectangle2D.Float(0, 0, w, h, arcW, arcH));
 
         super.paintComponent(g2);
         g2.dispose();

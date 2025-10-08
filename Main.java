@@ -27,7 +27,6 @@ public class Main extends JFrame {
     private ExpenseService expenseService;
     private CsvManager csvManager;
     private TempExpenseStore tempExpenseStore;
-    private static LocalDate startDate = LocalDate.now(); 
     
 
     public Main() throws IOException {
@@ -36,8 +35,8 @@ public class Main extends JFrame {
         categoryService = new CategoryService(configManager);
         dailyExpense = new DailyExpense();
         csvManager = new CsvManager();
-        expenseService = new ExpenseService(csvManager, dailyExpense);
         tempExpenseStore = new TempExpenseStore();
+        expenseService = new ExpenseService(csvManager, dailyExpense,tempExpenseStore);
         appContext = new AppContext(configManager, categoryService, dailyExpense, expenseService,tempExpenseStore);
         
 
@@ -45,35 +44,6 @@ public class Main extends JFrame {
         setSize(375, 812);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
-
-        // new Thread(() -> {
-        //     while (true) {
-        //         try {
-        //             Thread.sleep(60_000); // เช็คทุก 1 นาที
-        //             LocalDate today = LocalDate.now();
-
-        //             if (!today.equals(startDate)) {
-        //                 System.out.println("ข้ามวันแล้ว! กำลังรีเซ็ตระบบ...");
-        //                 try {
-        //                     tempExpenseStore.resetToday();
-        //                 } catch (Exception e) {
-        //                     e.printStackTrace();
-        //                 }
-
-        //                 // วิธีง่ายที่สุดคือ “ให้ user ปิด–เปิดโปรแกรมใหม่”
-        //                 System.out.println("กรุณาปิดแล้วเปิดโปรแกรมใหม่ เพื่อเริ่มวันใหม่");
-        //                 break;
-        //             } else {
-        //                 System.out.println("วันเดิม");
-        //             }
-
-        //         } catch (InterruptedException e) {
-        //             e.printStackTrace();
-        //         }
-        //     }
-        // }).start();
-
-
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
         controller = new AppController(cardLayout, mainPanel);
@@ -87,7 +57,6 @@ public class Main extends JFrame {
         mainPanel.add(new Home(controller, appContext), "Home");
         mainPanel.add(new More(controller), "More");
         mainPanel.add(new Add(controller, appContext), "Add");
-        mainPanel.add(new Summary(controller), "Summary");
         mainPanel.add(new Setting(controller), "Setting");
         mainPanel.add(new Budget(controller, appContext), "Budget");
         mainPanel.add(new Sumpath(controller), "Sumpath");
@@ -107,7 +76,6 @@ public class Main extends JFrame {
             try {
                 new Main().setVisible(true);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         });

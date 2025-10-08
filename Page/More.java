@@ -12,11 +12,24 @@ public class More extends JPanel {
     public More(AppController controller){
         setLayout(null);
 
-        JButton l1 = new JButton("← Back");
-        l1.setBounds(0, 0, 100, 30);
-        l1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        l1.setForeground(Color.BLACK);
-        add(l1);
+        JButton b1 = new PillButton("← Back"); 
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b1.setBounds(0, 10, 100, 30); 
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE); 
+        add(b1);
+
+        JLabel l2 = new JLabel(" Setting "); 
+        l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
+        l2.setForeground(new Color(255, 255, 224)); 
+        l2.setBounds(125, 90, 400, 50); 
+        add(l2);
+        
+        JLabel l3 = new JLabel(" Export "); 
+        l3.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
+        l3.setForeground(new Color(255, 255, 224)); 
+        l3.setBounds(125, 390, 400, 50); 
+        add(l3);
 
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
@@ -33,7 +46,7 @@ public class More extends JPanel {
         setbt.setToolTipText("Setting");
         exbt.setToolTipText("Export");
 
-        l1.addActionListener(e -> controller.showPage("Home"));
+        b1.addActionListener(e -> controller.showPage("Home"));
         setbt.addActionListener(e -> controller.showPage("Setting"));
         exbt.addActionListener(e -> controller.showPage("Ep"));
     }

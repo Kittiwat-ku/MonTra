@@ -5,12 +5,8 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import java.util.List;   
+   
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
@@ -37,7 +33,6 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", initBudget));
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f", appContext.getDailyExpense().getSpent()));
-            double tmp = (appContext.getRemining() / appContext.getCategoryService().getDailyBudget()) *100; // find percent of remaining
 
         } catch (Exception e) {
             
@@ -91,7 +86,6 @@ public class Home extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(75, 200, 220, 220);
 
-        // JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
 
@@ -117,11 +111,12 @@ public class Home extends JPanel {
         head.add(h1); head.add(h2); head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
 
-        JPanel listContent = showlist("./File/TodaySpent/todayTEMP.txt");
+        JPanel listContent = showlist("./File/Temp/todayTemp.csv");
         JScrollPane scroll = new JScrollPane(listContent);
+        scroll.getViewport().setViewPosition(new Point(0,0));
         scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         listPanel.add(scroll, BorderLayout.CENTER);
-        listPanel.setBounds(50, 500, 280, 180);
+        listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
 
         JLabel time = new JLabel();
@@ -177,6 +172,7 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
             totalSpend.setText("Total Spend: "+String.format("%,.2f",appContext.getDailyExpense().getSpent()));
             remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
+            reloadList(listContent, "./File/Temp/todayTemp.csv");
         }
        });
 
@@ -199,6 +195,7 @@ public class Home extends JPanel {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             int index = 1;
+            line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length >= 3) {
@@ -223,8 +220,11 @@ public class Home extends JPanel {
 
                     panel.add(row);
                     index++;
+
                 }
+
             }
+            panel.setPreferredSize(new Dimension(0,(index*40)+250));
         } catch (IOException e) {
             e.printStackTrace();
             JLabel error = new JLabel(" NO Data use ", SwingConstants.CENTER);
@@ -234,6 +234,15 @@ public class Home extends JPanel {
 
         return panel;
     }
+    private void reloadList(JPanel listContent, String filePath) {
+    listContent.removeAll();                // ล้างข้อมูลเก่าออก
+    JPanel newPanel = showlist(filePath);   // สร้าง panel ใหม่จากไฟล์
+    for (Component c : newPanel.getComponents()) {
+        listContent.add(c);                 // loop เพิ่ม componentทุกตัว ใหม่เข้า listContent
+    }
+    listContent.revalidate();               // บอก layout manager ให้จัดใหม่
+    listContent.repaint();                  // วาดใหม่
+}
 
 
     @Override
