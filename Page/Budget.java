@@ -7,6 +7,7 @@ import java.awt.geom.Point2D;
 
 import javax.swing.*;
 import ButtonDesign.LabeledInputCard;
+import ButtonDesign.PillButton;
 import Controller.AppController;
 
 import Service.AppContext;
@@ -16,21 +17,23 @@ public class Budget extends JPanel {
     public Budget(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        JButton b1 = new JButton("← Back");
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 0, 100, 30);
-        b1.setForeground(Color.BLACK);
+        JButton b1 = new PillButton("← Back"); 
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b1.setBounds(0, 10, 100, 30); 
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE); 
         add(b1);
 
         LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
-        JButton b2 = new JButton(" Comfirm ");
-        b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b2.setBounds(100, 400, 150, 60);
-        b2.setForeground(Color.BLACK);
-        add(b2);
+        PillButton b2 = new PillButton(" Comfirm ");
+        b2.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b2.setBounds(100, 450, 175, 60);
+        ((PillButton) b2).setButtonStyle(PillButton.Style.HYBRID); 
+        b2.setForeground(Color.BLACK); 
+        add(b2); 
 
         b1.addActionListener(e -> controller.showPage("More"));
 

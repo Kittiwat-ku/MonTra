@@ -18,6 +18,7 @@ import java.util.List;
 
 import javax.swing.*;
 
+import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
@@ -26,20 +27,22 @@ public class RemoveCat extends JPanel {
     public RemoveCat(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        JButton b1 = new JButton("← Back");
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 0, 100, 30);
-        b1.setForeground(Color.BLACK);
+        JButton b1 = new PillButton("← Back"); 
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b1.setBounds(0, 10, 100, 30); 
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE); 
         add(b1);
 
         JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
         c.setBounds(57, 150, 250, 75);
         add(c);
 
-        JButton b2 = new JButton(" Remove ");
-        b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b2.setBounds(100, 450, 150, 60);
-        b2.setForeground(Color.BLACK);
+        PillButton b2 = new PillButton(" Remove ");
+        b2.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b2.setBounds(100, 450, 175, 60);
+        ((PillButton) b2).setButtonStyle(PillButton.Style.HYBRID); 
+        b2.setForeground(Color.BLACK); 
         add(b2);
 
         b1.addActionListener(e -> controller.showPage("CategoryPath"));

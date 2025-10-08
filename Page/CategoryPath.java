@@ -11,11 +11,12 @@ public class CategoryPath extends JPanel {
     public CategoryPath(AppController controller) {
         setLayout(null);
 
-        JButton b1 = new JButton("← Back");
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 0, 100, 30);
-        b1.setForeground(Color.BLACK);
-        add(b1);
+        JButton b1 = new PillButton("← Back"); 
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b1.setBounds(0, 10, 100, 30); 
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE); 
+        add(b1);;
 
         JLabel l1 = new JLabel(" Set Category ");
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30));

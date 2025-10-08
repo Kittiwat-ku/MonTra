@@ -22,10 +22,11 @@ public class Add extends JPanel {
         l1.setBounds(20, 100, 400, 50);
         add(l1);
 
-        JButton b1 = new JButton("← Back");
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 0, 100, 30);
-        b1.setForeground(Color.BLACK);
+        JButton b1 = new PillButton("← Back"); 
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b1.setBounds(0, 10, 100, 30); 
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE); 
         add(b1);
 
         LabeledInputCard description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
@@ -40,11 +41,12 @@ public class Add extends JPanel {
         c.setBounds(57, 500, 250, 50);
         add(c);
 
-        JButton b2 = new JButton(" Comfirm ");
-        b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b2.setBounds(100, 600, 150, 60);
-        b2.setForeground(Color.BLACK);
-        add(b2);
+        PillButton b2 = new PillButton(" Comfirm ");
+        b2.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
+        b2.setBounds(100, 600, 175, 60);
+        ((PillButton) b2).setButtonStyle(PillButton.Style.HYBRID); 
+        b2.setForeground(Color.BLACK); 
+        add(b2); 
 
         // Action
         b1.addActionListener(e -> controller.showPage("Home"));
