@@ -103,7 +103,7 @@ public class Home extends JPanel {
         head.add(h1); head.add(h2); head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
 
-        scroll = showlist("./File/Temp/todayTemp.csv");
+        scroll = showlist("./File/Temp/TodayTemp.csv");
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
@@ -153,7 +153,7 @@ public class Home extends JPanel {
                 budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
                 totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
                 remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
-                reloadList(scroll, "./File/Temp/todayTemp.csv");
+                reloadList(scroll, "./File/Temp/TodayTemp.csv");
             }
         });
     }
@@ -237,7 +237,17 @@ public class Home extends JPanel {
         return scroll;
     }
 
-
+    private void saveListToFile(DefaultListModel<String[]> model, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+            writer.println("Description,Type,Price");
+            for (int i = 0; i < model.size(); i++) {
+                String[] row = model.getElementAt(i);
+                writer.println(row[0] + "," + row[1] + "," + row[2]);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Can't Sav", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     private void reloadList(JScrollPane scroll, String filePath) {
         JScrollPane newScroll = showlist(filePath);
