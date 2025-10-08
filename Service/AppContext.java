@@ -30,7 +30,7 @@ public class AppContext {
         this.tempExpenseStore = tempExpenseStore;
 
         // dailyExpense.setExpenses(tempExpenseStore.readToday());
-        this.expenseService.startWriting(categoryService.getDailyBudget());
+        this.expenseService.startProgram(categoryService.getDailyBudget());
 
     }
 
