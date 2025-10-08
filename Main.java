@@ -87,7 +87,6 @@ public class Main extends JFrame {
         mainPanel.add(new Home(controller, appContext), "Home");
         mainPanel.add(new More(controller), "More");
         mainPanel.add(new Add(controller, appContext), "Add");
-        mainPanel.add(new Summary(controller), "Summary");
         mainPanel.add(new Setting(controller), "Setting");
         mainPanel.add(new Budget(controller, appContext), "Budget");
         mainPanel.add(new Sumpath(controller), "Sumpath");
