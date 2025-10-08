@@ -10,35 +10,75 @@ import java.util.*;
 public class TempExpenseStore {
 
     // ---------- Path หลัก ----------
-    private static final Path TEMP_DIR = Paths.get("./File/Temp");
-    private static final Path TEMP_FILE = TEMP_DIR.resolve("TodayTemp.csv");
-    private static final Path DATE_TRACK_FILE = TEMP_DIR.resolve("last_date.txt");
-    private static final Path LOGS_DIR = Paths.get("./File/Logs");
-    private static final Path EXPORT_DIR = Paths.get("./File/Export");
+    private static final Path TEMP_DIR         = Paths.get("./File/Temp");
+    private static final Path TEMP_FILE        = TEMP_DIR.resolve("TodayTemp.csv");
+    private static final Path DATE_TRACK_FILE  = TEMP_DIR.resolve("last_date.txt");
+    private static final Path LOGS_DIR         = Paths.get("./File/Logs");
+    private static final Path EXPORT_DIR       = Paths.get("./File/Export");
 
-    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DF  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // ---------- Constructor ----------
     public TempExpenseStore() throws IOException {
         initTempFile();
     }
 
-    // ---------- ตรวจและเตรียม Temp ตอนเริ่มโปรแกรม ----------
+    // สร้างโฟลเดอร์และไฟล์พื้นฐาน ถ้ายังไม่มี
     private void initTempFile() throws IOException {
         if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
         if (!Files.exists(TEMP_FILE)) resetToday();
-
         if (!Files.exists(DATE_TRACK_FILE)) {
             Files.writeString(DATE_TRACK_FILE, LocalDate.now().toString(), StandardCharsets.UTF_8);
         }
     }
 
-    // ---------- Reset Temp ----------
+    // อ่านวันที่ล่าสุดจาก last_date.txt (ถ้าไม่มีไฟล์จะสร้างเป็นวันที่ปัจจุบัน)
+    private LocalDate getLastDate() throws IOException {
+        if (!Files.exists(DATE_TRACK_FILE)) {
+            LocalDate today = LocalDate.now();
+            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+            return today;
+        }
+        String s = Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim();
+        if (s.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+            return today;
+        }
+        return LocalDate.parse(s);
+    }
+
+    // ใช้ตอนเริ่มโปรแกรม: ตรวจว่าวันเปลี่ยนหรือยัง
+    // ถ้าวันใหม่ → export log ของวันเก่า + reset temp + update วันที่ใหม่
+    // ถ้าวันเดิม → ไม่ทำอะไร
+    public void exportTodayToLogs(double budget) throws IOException {
+        LocalDate lastDate = getLastDate();
+        LocalDate today = LocalDate.now();
+
+        if (!lastDate.equals(today)) {
+            System.out.println("[TempExpenseStore] Detected new day: " + today);
+
+            // 1) export log ของวันเก่า
+            exportMonthlyLogFor(budget, lastDate);
+
+            // 2) reset temp สำหรับวันใหม่
+            resetToday();
+
+            // 3) update last_date.txt เป็นวันนี้
+            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+
+            System.out.println("[TempExpenseStore] Export complete and temp reset for new day.");
+        } else {
+            System.out.println("[TempExpenseStore] Still the same day: " + today);
+        }
+    }
+
+    // ล้างข้อมูล Temp และเขียนหัวข้อใหม่
     public void resetToday() throws IOException {
         Files.write(TEMP_FILE, List.of("description,category,amount,date"), StandardCharsets.UTF_8);
     }
 
-    // ---------- อ่านข้อมูลใน Temp ----------
+    // อ่านข้อมูลจาก Temp แล้วคืนค่าเป็น List<Expense>
     public List<Expense> readToday() throws IOException {
         if (!Files.exists(TEMP_FILE)) resetToday();
         List<String> lines = Files.readAllLines(TEMP_FILE, StandardCharsets.UTF_8);
@@ -49,16 +89,16 @@ public class TempExpenseStore {
             String[] a = line.split(",", -1);
             if (a.length < 4) continue;
             out.add(new Expense(
-                    a[0].trim(),
-                    a[1].trim(),
-                    parseDouble(a[2]),
-                    a[3].trim()
+                    a[0].trim(),          // description
+                    a[1].trim(),          // category
+                    parseDouble(a[2]),    // amount
+                    a[3].trim()           // date
             ));
         }
         return out;
     }
 
-    // ---------- เขียนทับ Temp ใหม่ทั้งไฟล์ ----------
+    // เขียนข้อมูลทั้งหมดกลับเข้า Temp (ใช้ตอนเพิ่ม/ลบ/แก้ไข)
     public void writeAllToday(List<Expense> items) throws IOException {
         if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
 
@@ -83,39 +123,34 @@ public class TempExpenseStore {
         }
     }
 
-    // ---------- Export แบบทั่วไป (ให้ชื่อไฟล์เองได้) ----------
+    // Export ข้อมูลแบบกำหนดชื่อไฟล์เอง (เก็บใน ./File/Export)
     public void exportCustom(String filename, double budget) throws IOException {
         if (!Files.exists(EXPORT_DIR)) Files.createDirectories(EXPORT_DIR);
         if (!filename.toLowerCase().endsWith(".csv")) filename += ".csv";
-        String exportPath = EXPORT_DIR.resolve(filename).toString();
-        exportCustomInternal(exportPath, budget);
+        Path out = EXPORT_DIR.resolve(filename);
+        exportCustomInternal(out.toString(), budget);
     }
 
-    // ---------- Export สำหรับ Logs (ใช้วันที่เป็นชื่อไฟล์) ----------
-    public void exportTodayToLogs(double budget) throws IOException {
-        String lastDateStr = Files.exists(DATE_TRACK_FILE)
-                ? Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim()
-                : "";
-        LocalDate lastDate = lastDateStr.isEmpty() ? LocalDate.now() : LocalDate.parse(lastDateStr);
-        LocalDate today = LocalDate.now();
-
-        if (lastDate.equals(today)) {
-            // System.out.println("ยังเป็นวันเดียวกัน ไม่ต้อง export ซ้ำ");
-            return;
-        }
-
-        if (!Files.exists(LOGS_DIR)) Files.createDirectories(LOGS_DIR);
-        String logPath = LOGS_DIR.resolve(lastDate.toString() + ".csv").toString();
-        exportCustomInternal(logPath, budget);
-
-        Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
+    // Export Log รายเดือน (สำหรับ exportTodayToLogs ใช้)
+    private void exportMonthlyLogFor(double budget, LocalDate logDate) throws IOException {
+        Path out = buildMonthlyLogPath(logDate);
+        Files.createDirectories(out.getParent());
+        exportCustomInternal(out.toString(), budget);
+        System.out.println("[TempExpenseStore] Log exported to " + out.toAbsolutePath());
     }
 
-    // ---------- แกนกลางการ Export (ใช้ร่วมกันได้ทั้ง Logs/Export) ----------
+    // สร้าง Path ปลายทางของ Log รายเดือน (File/Logs/ปี/เดือน/วันที่.csv)
+    private Path buildMonthlyLogPath(LocalDate date) {
+        String year  = String.valueOf(date.getYear());
+        String month = String.format("%02d", date.getMonthValue());
+        return LOGS_DIR.resolve(year).resolve(month).resolve(date.toString() + ".csv");
+    }
+
+    // Core export: เขียนไฟล์ CSV จริง
     private void exportCustomInternal(String outputPath, double budget) throws IOException {
         List<Expense> items = readToday();
         if (items.isEmpty()) {
-            // System.out.println("ไม่มีข้อมูลใน Temp ไม่สามารถ export ได้");
+            System.out.println("[TempExpenseStore] No data to export.");
             return;
         }
 
@@ -133,6 +168,7 @@ public class TempExpenseStore {
             double amt = e.getAmount();
             totalSpent += amt;
             remaining -= amt;
+
             sb.append(escape(e.getDescription())).append(",")
               .append(escape(e.getCategory())).append(",")
               .append(toStr(amt)).append(",")
@@ -146,13 +182,12 @@ public class TempExpenseStore {
         Files.writeString(outFile, sb.toString(), StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        // System.out.println("Export สำเร็จ → " + outFile.toAbsolutePath());
+        System.out.println("[TempExpenseStore] Export successful: " + outFile.toAbsolutePath());
     }
-
 
     // ---------- Helper ----------
     private static String toStr(double v) { return String.format(Locale.US, "%.2f", v); }
-    private static double parseDouble(String s) { return s == null || s.isBlank() ? 0 : Double.parseDouble(s.trim()); }
+    private static double parseDouble(String s) { return (s == null || s.isBlank()) ? 0.0 : Double.parseDouble(s.trim()); }
     private static String escape(String s) {
         if (s == null) return "";
         String x = s.replace("\"", "\"\"");
