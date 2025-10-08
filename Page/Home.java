@@ -2,9 +2,7 @@ package Page;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
@@ -17,7 +15,7 @@ public class Home extends JPanel {
     public Home(AppController controller, AppContext appContext) {
 
         setLayout(new BorderLayout());
-        setOpaque(false);    
+        setOpaque(false);
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
@@ -32,7 +30,9 @@ public class Home extends JPanel {
             budgetl2.setText(String.format("%,.2f", initBudget));
             remainl2.setText(String.format("%,.2f", appContext.getRemining()));
             totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JLabel budgetl3 = new JLabel("Budget");
         budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
@@ -42,7 +42,7 @@ public class Home extends JPanel {
         budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         budgetl2.setForeground(Color.WHITE);
         budgetl2.setBounds(30, 40, 200, 60);
-        
+
         budgetl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         budgetl3.setForeground(Color.WHITE);
         budgetl3.setBounds(20, 100, 150, 30);
@@ -58,7 +58,7 @@ public class Home extends JPanel {
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
         remainl2.setBounds(250, 40, 200, 60);
-        
+
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
         remainl3.setForeground(Color.WHITE);
         remainl3.setBounds(285, 100, 150, 30);
@@ -90,8 +90,7 @@ public class Home extends JPanel {
         list.setBounds(150, 435, 100, 60);
         contentPanel.add(list);
 
-        JPanel listPanel = new JPanel();
-        listPanel.setLayout(new BorderLayout());
+        JPanel listPanel = new JPanel(new BorderLayout());
 
         JPanel head = new JPanel(new GridLayout(1, 3));
         head.setBackground(Color.LIGHT_GRAY);
@@ -106,7 +105,6 @@ public class Home extends JPanel {
 
         scroll = showlist("./File/Temp/todayTemp.csv");
         listPanel.add(scroll, BorderLayout.CENTER);
-
         listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
 
@@ -119,37 +117,32 @@ public class Home extends JPanel {
 
         javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy  HH:mm:ss");
-            time.setText(sdf.format(new java.util.Date()));});
+            time.setText(sdf.format(new java.util.Date()));
+        });
         timer.start();
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // ===== Navbar =====
         JPanel navBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 20));
-        navBar.setOpaque(false); 
+        navBar.setOpaque(false);
 
         CircleButton homebt = new CircleButton("📊");
         homebt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 23));
-        homebt.setPreferredSize(new Dimension(50,50));
+        homebt.setPreferredSize(new Dimension(50, 50));
 
         CircleButton morebt = new CircleButton("...");
         morebt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 23));
-        morebt.setPreferredSize(new Dimension(50,50));
+        morebt.setPreferredSize(new Dimension(50, 50));
 
         CircleButton addbt = new CircleButton("➕");
         addbt.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 35));
-        addbt.setPreferredSize(new Dimension(80,80));
+        addbt.setPreferredSize(new Dimension(80, 80));
 
         navBar.add(homebt);
         navBar.add(addbt);
         navBar.add(morebt);
         add(navBar, BorderLayout.SOUTH);
 
-        // ===== Actions =====
-        homebt.setToolTipText("Summary");
-        addbt.setToolTipText("Add");
-        morebt.setToolTipText("More");
-        
         homebt.addActionListener(e -> controller.showPage("Sumpath"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
@@ -185,34 +178,53 @@ public class Home extends JPanel {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
             model.addElement(new String[]{"NO Data", "", ""});
         }
 
         JList<String[]> list = new JList<>(model);
-        list.setFixedCellHeight(35);
+        list.setFixedCellHeight(40);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        list.setOpaque(true);
         list.setBackground(new Color(245, 245, 245));
 
         list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
-            JPanel row = new JPanel(new GridLayout(1, 3));
+            JPanel row = new JPanel(new BorderLayout());
             row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
-            JLabel l1 = new JLabel(value[0], SwingConstants.CENTER);
-            JLabel l2 = new JLabel(value[1], SwingConstants.CENTER);
-            JLabel l3 = new JLabel(value[2], SwingConstants.CENTER);
+            JPanel infoPanel = new JPanel(new GridLayout(1, 3));
+            infoPanel.setOpaque(false);
+            infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
+            row.add(infoPanel, BorderLayout.CENTER);
 
-            l1.setFont(lst.getFont());
-            l2.setFont(lst.getFont());
-            l3.setFont(lst.getFont());
+            if (isSelected) {
+                JButton delete = new JButton("❌");
+                delete.setFocusable(false);
+                delete.setBorderPainted(false);
+                delete.setBackground(Color.WHITE);
+                delete.setForeground(Color.RED);
+                delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                row.add(delete, BorderLayout.EAST);
 
-            row.add(l1);
-            row.add(l2);
-            row.add(l3);
+                delete.addActionListener(e -> {
+                    int confirm = JOptionPane.showConfirmDialog(
+                            null,
+                            "You Want to delete This list?",
+                            "Confirm",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                    );
 
-            if (isSelected) row.setBackground(new Color(220, 240, 255));
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        model.remove(index);
+                        saveListToFile(model, filePath);
+                        JOptionPane.showMessageDialog(null, "SUCCESSFULLY", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
+            }
+
+            if (isSelected) row.setBackground(new Color(230, 240, 255));
             else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
 
             return row;
@@ -224,10 +236,22 @@ public class Home extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
+
+    private void saveListToFile(DefaultListModel<String[]> model, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+            writer.println("Description,Type,Price");
+            for (int i = 0; i < model.size(); i++) {
+                String[] row = model.getElementAt(i);
+                writer.println(row[0] + "," + row[1] + "," + row[2]);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Can't Sav", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void reloadList(JScrollPane scroll, String filePath) {
         JScrollPane newScroll = showlist(filePath);
-        JViewport vp = scroll.getViewport();
-        vp.setView(newScroll.getViewport().getView());
+        scroll.setViewportView(newScroll.getViewport().getView());
     }
 
     @Override
