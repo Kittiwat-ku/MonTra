@@ -8,7 +8,7 @@ public class Expense {
     private String category;
     private String date;
 
-    public Expense(String description, double amount, String category, String date) {
+    public Expense(String description,String category , double amount, String date) {
         setDescription(description);
         setAmount(amount);
         setCategory(category);

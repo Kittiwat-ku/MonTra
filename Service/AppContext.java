@@ -4,25 +4,33 @@ import java.awt.List;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import Config.ConfigManager;
 import Expense.DailyExpense;
 import Expense.Expense;
+import Expense.TempExpenseStore;
 
 public class AppContext {
     private final ConfigManager cfgMgr;
     private final CategoryService categoryService;
     private final DailyExpense dailyExpense;
     private final ExpenseService expenseService;
+    private final TempExpenseStore tempExpenseStore;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public AppContext(ConfigManager cfgMgr, CategoryService categoryService, DailyExpense dailyExpense,
-            ExpenseService expenseService) {
+            ExpenseService expenseService,TempExpenseStore tempExpenseStore) throws IOException {
         this.cfgMgr = cfgMgr;
         this.categoryService = categoryService;
         this.dailyExpense = dailyExpense;
         this.expenseService = expenseService;
+        this.tempExpenseStore = tempExpenseStore;
+
+        dailyExpense.setExpenses(tempExpenseStore.readToday());
+
     }
 
     public ConfigManager getCfgMgr() {
@@ -64,9 +72,9 @@ public class AppContext {
         pcs.firePropertyChange("reload", null, null);
     }
 
-    public void addExpense(String description, Double amount, String category) {
+    public void addExpense(String description, Double amount, String category) throws IOException {
         expenseService.addExpense(description, amount, category);
-        expenseService.writetemp(dailyExpense.getExpenses());
+        tempExpenseStore.appendToday(new Expense(description, category, amount, LocalDate.now().toString()));
         pcs.firePropertyChange("reload", null, null);
     }
 

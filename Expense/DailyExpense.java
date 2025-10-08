@@ -31,7 +31,6 @@ public class DailyExpense {
     }
 
     public void setExpenses(List<Expense> expenses){
-        expenses.clear();
-        if (expenses != null) expenses.addAll(expenses);
+        this.expenses = expenses;
     }
 }
