@@ -42,12 +42,12 @@ public class Ep extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    appContext.removeExpense(Integer.parseInt(description.getText()));
-                } catch (NumberFormatException | IOException e1) {
+                    appContext.exportCustom(description.getText());
+                    description.setText("");
+                    controller.showPage("Home");
+                } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                description.setText("");
-                controller.showPage("Home");
             }
 
         });

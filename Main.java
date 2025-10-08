@@ -2,7 +2,6 @@ import javax.swing.*;
 
 import Config.ConfigManager;
 import Controller.AppController;
-import Expense.CsvManager;
 import Expense.DailyExpense;
 import Expense.TempExpenseStore;
 
@@ -25,7 +24,6 @@ public class Main extends JFrame {
     private CategoryService categoryService;
     private DailyExpense dailyExpense;
     private ExpenseService expenseService;
-    private CsvManager csvManager;
     private TempExpenseStore tempExpenseStore;
     
 
@@ -34,9 +32,8 @@ public class Main extends JFrame {
         configManager = new ConfigManager();
         categoryService = new CategoryService(configManager);
         dailyExpense = new DailyExpense();
-        csvManager = new CsvManager();
         tempExpenseStore = new TempExpenseStore();
-        expenseService = new ExpenseService(csvManager, dailyExpense,tempExpenseStore);
+        expenseService = new ExpenseService(dailyExpense,tempExpenseStore);
         appContext = new AppContext(configManager, categoryService, dailyExpense, expenseService,tempExpenseStore);
         
 

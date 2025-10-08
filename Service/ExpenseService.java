@@ -5,18 +5,15 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import Expense.CsvManager;
 import Expense.DailyExpense;
 import Expense.Expense;
 import Expense.TempExpenseStore;
 
 public class ExpenseService {
-    private final CsvManager csvManager;
     private DailyExpense dailyExpense;
     private TempExpenseStore tempExpenseStore;
 
-    public ExpenseService(CsvManager csvManager, DailyExpense dailyExpense,TempExpenseStore tempExpenseStore) throws IOException {
-        this.csvManager = csvManager;
+    public ExpenseService(DailyExpense dailyExpense,TempExpenseStore tempExpenseStore) throws IOException {
         this.dailyExpense = dailyExpense;
         this.tempExpenseStore = tempExpenseStore;
     }
@@ -32,9 +29,6 @@ public class ExpenseService {
         dailyExpense.setExpenses(tempExpenseStore.readToday());
     }
 
-    public void exportToCSV(String filename) {
-        csvManager.exportToCSVwithfilename(dailyExpense.getExpenses(), filename);
-    }
     public void removeExpense(int index) throws IOException{
         dailyExpense.removeAt(index);
         tempExpenseStore.writeAllToday(dailyExpense.getExpenses());

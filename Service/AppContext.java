@@ -58,11 +58,10 @@ public class AppContext {
         pcs.removePropertyChangeListener(l);
     }
 
-    // public void setDailyBudget(double newBudget) throws Exception{
-    // double oldbg = categoryService.getDailyBudget();
-    // categoryService.setDailyBudget(newBudget);
-    // pcs.firePropertyChange("dailyBudget", oldbg, newBudget);
-    // }
+    public void exportCustom(String filename) throws IOException{
+        tempExpenseStore.exportCustom(filename, categoryService.getDailyBudget());
+    }
+
     public double getRemining() {
         return dailyExpense.getRemining(categoryService.getDailyBudget());
     }
