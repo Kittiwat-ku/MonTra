@@ -88,4 +88,8 @@ public class AppContext {
         categoryService.remove(name);
         pcs.firePropertyChange("UpdateCatList", null, null);
     }
+    public void removeExpense(int index) throws IOException{
+        expenseService.removeExpense(index);
+        pcs.firePropertyChange("reload", null, null);
+    }
 }

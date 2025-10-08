@@ -218,7 +218,7 @@ public class Home extends JPanel {
 
                     if (confirm == JOptionPane.YES_OPTION) {
                         model.remove(index);
-                        saveListToFile(model, filePath);
+
                         JOptionPane.showMessageDialog(null, "SUCCESSFULLY", "Success", JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
@@ -237,17 +237,7 @@ public class Home extends JPanel {
         return scroll;
     }
 
-    private void saveListToFile(DefaultListModel<String[]> model, String filePath) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            writer.println("Description,Type,Price");
-            for (int i = 0; i < model.size(); i++) {
-                String[] row = model.getElementAt(i);
-                writer.println(row[0] + "," + row[1] + "," + row[2]);
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Can't Sav", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+
 
     private void reloadList(JScrollPane scroll, String filePath) {
         JScrollPane newScroll = showlist(filePath);

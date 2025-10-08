@@ -34,5 +34,9 @@ public class ExpenseService {
     public void exportToCSV(String filename) {
         csvManager.exportToCSVwithfilename(dailyExpense.getExpenses(), filename);
     }
-
+    public void removeExpense(int index) throws IOException{
+        dailyExpense.removeAt(index);
+        tempExpenseStore.writeAllToday(dailyExpense.getExpenses());
+        
+    }
 }

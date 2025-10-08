@@ -221,6 +221,33 @@ public void exportTodayToLogs(double budget) throws IOException {
     Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
     return true;
 }
+    // เขียนทับ TodayTemp.csv ทั้งไฟล์จากรายการที่ให้มา (atomic write)
+public void writeAllToday(List<Expense> items) throws IOException {
+    if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
+
+    // เตรียมเนื้อไฟล์ใหม่ (header + rows)
+    StringBuilder sb = new StringBuilder();
+    sb.append("description,category,amount,date\n");
+    for (Expense e : items) {
+        sb.append(escape(e.getDescription())).append(",")
+          .append(escape(e.getCategory())).append(",")
+          .append(toStr(e.getAmount())).append(",")
+          .append(e.getDate()).append("\n");
+    }
+
+    // เขียนไฟล์แบบ atomic: เขียนลง .tmp แล้วค่อยย้ายทับ
+    Path tmp = TEMP_FILE.resolveSibling("TodayTemp.csv.tmp");
+    Files.writeString(tmp, sb.toString(), StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    try {
+        Files.move(tmp, TEMP_FILE,
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.ATOMIC_MOVE);
+    } catch (AtomicMoveNotSupportedException ex) {
+        // บาง FS ไม่รองรับ ATOMIC_MOVE ก็ใช้ REPLACE_EXISTING อย่างเดียว
+        Files.move(tmp, TEMP_FILE, StandardCopyOption.REPLACE_EXISTING);
+    }
+}
 
     // ---------- helper ----------
     private static String toStr(double v) { return String.format(Locale.US, "%.2f", v); }
