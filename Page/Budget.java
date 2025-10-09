@@ -15,6 +15,7 @@ import Service.AppContext;
 public class Budget extends JPanel {
 
     JLabel errorLabel;
+    LabeledInputCard description;
 
     public Budget(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -33,7 +34,7 @@ public class Budget extends JPanel {
         errorLabel.setBounds(30, 320, 300, 20);
         add(errorLabel);
 
-        LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
+        description = new LabeledInputCard("Budget", "Set Budget");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -44,7 +45,16 @@ public class Budget extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(e -> controller.showPage("More"));
+        b1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+                clearError();
+                controller.showPage("Setting");
+            }
+            
+        });
 
         b2.addActionListener(new ActionListener() {
 
@@ -73,8 +83,8 @@ public class Budget extends JPanel {
                     
                     appContext.setDailyBudget(newBudget);
                     clearError();
-                    description.setText("");
-                    controller.showPage("Home");
+                    clear();
+
 
                 } catch (NumberFormatException ex) {
                     showError("Input must be all number");
@@ -86,6 +96,9 @@ public class Budget extends JPanel {
             }
         });
 
+    }
+    private void clear(){
+        description.setText("");
     }
 
     private void clearError() {

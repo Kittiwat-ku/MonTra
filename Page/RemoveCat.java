@@ -20,6 +20,7 @@ import Service.AppContext;
 public class RemoveCat extends JPanel {
 
     private final JLabel errorLabel;
+    JComboBox<String> c;
 
     public RemoveCat(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -30,7 +31,7 @@ public class RemoveCat extends JPanel {
         b1.setForeground(Color.BLACK);
         add(b1);
 
-        JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
+        c = province_to_combobox(appContext.getCategoryService().getCategory());
         c.setBounds(57, 150, 250, 50);
         c.setSelectedIndex(-1); // เริ่มต้น: ไม่เลือกอะไร -> getSelectedItem() จะเป็น null
         add(c);
@@ -48,7 +49,15 @@ public class RemoveCat extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(e -> controller.showPage("CategoryPath"));
+        b1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+                clearError();
+                controller.showPage("CategoryPath");
+            }
+        });
 
         b2.addActionListener(new ActionListener() {
             @Override
@@ -69,9 +78,7 @@ public class RemoveCat extends JPanel {
                     appContext.RemoveCat(cat);
                     // รีเฟรชคอมโบหลังลบ (ให้ไปอยู่ที่ไม่เลือกอะไรอีกครั้ง)
                     refreshComboItems(c, appContext);
-                    c.setSelectedIndex(-1);
-                    // กลับหน้าเดิมถ้าต้องการ:
-                    // controller.showPage("CategoryPath");
+                    clear();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     showError("Cannot remove category. Please try again.");
@@ -96,6 +103,9 @@ public class RemoveCat extends JPanel {
         for (String s : tmp) {
             combo.addItem(s);
         }
+    }
+    private void clear(){
+        c.setSelectedIndex(-1);
     }
 
     private void showError(String msg) {
