@@ -84,6 +84,7 @@ public class Budget extends JPanel {
                     appContext.setDailyBudget(newBudget);
                     clearError();
                     clear();
+                    controller.showPage("Home");
 
 
                 } catch (NumberFormatException ex) {
