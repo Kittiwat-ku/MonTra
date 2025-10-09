@@ -60,7 +60,6 @@ public class Add extends JPanel {
                 try {
                     appContext.addExpense(description.getText(), tmp, c.getSelectedItem() + "");
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
                 description.setText("");
