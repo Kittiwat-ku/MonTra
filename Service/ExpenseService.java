@@ -24,7 +24,6 @@ public class ExpenseService {
     }
 
     public void startProgram(double budget) throws IOException {
-        // tempExpenseStore.rolloverIfNewDay(budget);
         tempExpenseStore.exportTodayToLogs(budget);
         dailyExpense.setExpenses(tempExpenseStore.readToday());
     }

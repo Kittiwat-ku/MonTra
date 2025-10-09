@@ -13,6 +13,8 @@ import Service.AppContext;
 
 public class SetCat extends JPanel {
 
+    LabeledInputCard description;
+
     private final JLabel errorLabel; // แสดงข้อความผิดพลาดสีแดง
 
     public SetCat(AppController controller, AppContext appContext) {
@@ -25,7 +27,7 @@ public class SetCat extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
-        LabeledInputCard description = new LabeledInputCard("Category", "Set Category");
+        description = new LabeledInputCard("Category", "Set Category");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -43,7 +45,16 @@ public class SetCat extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(e -> controller.showPage("CategoryPath"));
+        b1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+                clearError();
+                controller.showPage("CategoryPath");
+            }
+            
+        });
 
         b2.addActionListener(new ActionListener() {
             @Override
@@ -74,8 +85,7 @@ public class SetCat extends JPanel {
                     // All passed
                     appContext.addCategory(trimmed);
                     clearError();
-                    description.setText("");
-                    controller.showPage("Home");
+                    clear();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     showError("Cannot save category. Please try again.");
@@ -91,6 +101,9 @@ public class SetCat extends JPanel {
         errorLabel.setText(msg);
     }
 
+    private void clear(){
+        description.setText("");
+    }
     private void clearError() {
         errorLabel.setText("");
     }

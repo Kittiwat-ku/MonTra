@@ -1,4 +1,4 @@
 #MonTra config
-#Thu Oct 09 23:39:04 ICT 2025
-dailyBudget=400.00
-categories=Food
+#Fri Oct 10 01:04:12 ICT 2025
+dailyBudget=10000.00
+categories=awd

@@ -14,6 +14,9 @@ import Service.AppContext;
 public class Add extends JPanel {
 
     JLabel errorLabel;
+    LabeledInputCard description;
+    LabeledInputCard amount;
+    JComboBox<String> c;
 
     public Add(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -31,15 +34,15 @@ public class Add extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
-        LabeledInputCard description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
+        description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
-        LabeledInputCard amount = new LabeledInputCard("Amount", "Example: 500, 1000");
+        amount = new LabeledInputCard("Amount", "Example: 500, 1000");
         amount.setBounds(30, 350, 300, 100);
         add(amount);
 
-        JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
+        c = province_to_combobox(appContext.getCategoryService().getCategory());
         c.setBounds(57, 500, 250, 50);
         // ให้เริ่มต้น "ไม่เลือกอะไร" เพื่อให้ตรวจ null ได้จริง
         c.setSelectedIndex(-1);
@@ -60,7 +63,16 @@ public class Add extends JPanel {
         add(errorLabel);
 
         // Action
-        b1.addActionListener(e -> controller.showPage("Home"));
+        b1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+                clearError();
+                controller.showPage("Home");
+            }
+            
+        });
 
         b2.addActionListener(new ActionListener() {
             @Override
@@ -103,9 +115,10 @@ public class Add extends JPanel {
                     clearError();
 
                     // clear
-                    description.setText("");
-                    amount.setText("");
-                    c.setSelectedIndex(-1);
+                    // description.setText("");
+                    // amount.setText("");
+                    // c.setSelectedIndex(-1);
+                    clear();
 
                     controller.showPage("Home");
 
@@ -130,6 +143,11 @@ public class Add extends JPanel {
                 c.setSelectedIndex(-1);
             }
         });
+    }
+    private void clear(){
+        description.setText("");
+        amount.setText("");
+        c.setSelectedIndex(-1);
     }
 
     private void clearError() {

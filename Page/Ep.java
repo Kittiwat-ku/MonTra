@@ -14,6 +14,7 @@ import Service.AppContext;
 public class Ep extends JPanel {
 
     private final JLabel errorLabel;
+    LabeledInputCard description;
 
     public Ep(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -25,7 +26,7 @@ public class Ep extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
-        LabeledInputCard description = new LabeledInputCard("Export", "Insert filename");
+        description = new LabeledInputCard("Export", "Insert filename");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -43,7 +44,16 @@ public class Ep extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(e -> controller.showPage("More"));
+        b1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+                clearError();
+                controller.showPage("Home");
+            }
+            
+        });
 
         b2.addActionListener(new ActionListener() {
             @Override
@@ -78,7 +88,7 @@ public class Ep extends JPanel {
                     appContext.exportCustom(safe); 
 
                     // clear and go back ถ้ามันExportได้
-                    description.setText("");
+                    clear();
                     controller.showPage("Home");
 
                 } catch (IOException ex) {
@@ -91,7 +101,9 @@ public class Ep extends JPanel {
             }
         });
     }
-
+    private void clear(){
+        description.setText("");
+    }
     private void showError(String msg) {
         errorLabel.setText(msg);
     }
