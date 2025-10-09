@@ -187,6 +187,7 @@ public class Home extends JPanel {
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
     list.setBackground(new Color(245, 245, 245));
+    list.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
     list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
         JPanel row = new JPanel(new BorderLayout());
