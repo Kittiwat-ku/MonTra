@@ -1,9 +1,9 @@
 package Page;
 
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import javax.swing.*;
 
 import ButtonDesign.LabeledInputCard;
@@ -11,29 +11,22 @@ import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
-public class SetCat extends JPanel {
+public class FBudget extends JPanel {
 
     private final JLabel errorLabel; // แสดงข้อความผิดพลาดสีแดง
 
-    public SetCat(AppController controller, AppContext appContext) {
+    public FBudget(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        JButton b1 = new PillButton("← Back");
-        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 10, 100, 30);
-        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
-        b1.setForeground(Color.WHITE);
-        add(b1);
-
-        LabeledInputCard description = new LabeledInputCard("Category", "Set Category");
+        LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
-        // error label
+        // ----- error label -----
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 320, 320, 20);
+        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        errorLabel.setBounds(30, 320, 300, 20);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Comfirm ");
@@ -43,45 +36,40 @@ public class SetCat extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(e -> controller.showPage("CategoryPath"));
-
         b2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String raw = description.getText();
                 if (raw == null) raw = "";
+                raw = raw.trim();
 
-                
-                raw.trim();
+                // เผื่อผู้ใช้พิมพ์คอมม่า เว้นวรรค
+                raw = raw.replace(",", "").trim();
 
-                
-                String trimmed = raw.trim();
-
-                if (trimmed.isEmpty()) {
+                if (raw.isEmpty()) {
                     showError("Input cannot be empty");
-                    return;
-                }
-                // if (hasLeadingOrTrailingSpace) {
-                //     showError("Leading/Trailing spaces are not allowed");
-                //     return;
-                // }
-                if (trimmed.contains(",")) {
-                    showError("Comma ( , ) is not allowed");
                     return;
                 }
 
                 try {
-                    // All passed
-                    appContext.addCategory(trimmed);
+                    double newBudget = Double.parseDouble(raw);
+                    if (newBudget <= 0) {
+                        showError("Input cannot be 0 or negative!!!");
+                        return;
+                    }
+
+                    
+                    appContext.setDailyBudget(newBudget);
                     clearError();
                     description.setText("");
                     controller.showPage("Home");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    showError("Cannot save category. Please try again.");
+
+                } catch (NumberFormatException ex) {
+                    showError("Input must be all number");
                 } catch (Exception ex) {
+                    // other exception
+                    showError("Error please try again");
                     ex.printStackTrace();
-                    showError("Unexpected error. Please try again.");
                 }
             }
         });
@@ -112,9 +100,9 @@ public class SetCat extends JPanel {
         float[] dist = { 0.0f, 0.5f, 1.0f };
 
         Color[] colors = {
-            new Color(0x4A5C58),
-            new Color(0x0A5C36),
-            new Color(0x1F2C2E)
+                new Color(0x4A5C58),
+                new Color(0x0A5C36),
+                new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);

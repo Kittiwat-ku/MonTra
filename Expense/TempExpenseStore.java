@@ -4,19 +4,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class TempExpenseStore {
 
     // ---------- Path หลัก ----------
-    private static final Path TEMP_DIR         = Paths.get("./File/Temp");
-    private static final Path TEMP_FILE        = TEMP_DIR.resolve("TodayTemp.csv");
-    private static final Path DATE_TRACK_FILE  = TEMP_DIR.resolve("last_date.txt");
-    private static final Path LOGS_DIR         = Paths.get("./File/Logs");
-    private static final Path EXPORT_DIR       = Paths.get("./File/Export");
+    private static final Path TEMP_DIR = Paths.get("./File/Temp");
+    private static final Path TEMP_FILE = TEMP_DIR.resolve("TodayTemp.csv");
+    private static final Path DATE_TRACK_FILE = TEMP_DIR.resolve("last_date.txt");
+    private static final Path LOGS_DIR = Paths.get("./File/Logs");
+    private static final Path EXPORT_DIR = Paths.get("./File/Export");
 
-    private static final DateTimeFormatter DF  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // ---------- Constructor ----------
     public TempExpenseStore() throws IOException {
@@ -25,8 +24,10 @@ public class TempExpenseStore {
 
     // สร้างโฟลเดอร์และไฟล์พื้นฐาน ถ้ายังไม่มี
     private void initTempFile() throws IOException {
-        if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
-        if (!Files.exists(TEMP_FILE)) resetToday();
+        if (!Files.exists(TEMP_DIR))
+            Files.createDirectories(TEMP_DIR);
+        if (!Files.exists(TEMP_FILE))
+            resetToday();
         if (!Files.exists(DATE_TRACK_FILE)) {
             Files.writeString(DATE_TRACK_FILE, LocalDate.now().toString(), StandardCharsets.UTF_8);
         }
@@ -80,19 +81,22 @@ public class TempExpenseStore {
 
     // อ่านข้อมูลจาก Temp แล้วคืนค่าเป็น List<Expense>
     public List<Expense> readToday() throws IOException {
-        if (!Files.exists(TEMP_FILE)) resetToday();
+        if (!Files.exists(TEMP_FILE))
+            resetToday();
         List<String> lines = Files.readAllLines(TEMP_FILE, StandardCharsets.UTF_8);
         List<Expense> out = new ArrayList<>();
         for (int i = 1; i < lines.size(); i++) {
             String line = lines.get(i);
-            if (line.isBlank()) continue;
+            if (line.isBlank())
+                continue;
             String[] a = line.split(",", -1);
-            if (a.length < 4) continue;
+            if (a.length < 4)
+                continue;
             out.add(new Expense(
-                    a[0].trim(),          // description
-                    a[1].trim(),          // category
-                    parseDouble(a[2]),    // amount
-                    a[3].trim()           // date
+                    a[0].trim(), // description
+                    a[1].trim(), // category
+                    parseDouble(a[2]), // amount
+                    a[3].trim() // date
             ));
         }
         return out;
@@ -100,15 +104,16 @@ public class TempExpenseStore {
 
     // เขียนข้อมูลทั้งหมดกลับเข้า Temp (ใช้ตอนเพิ่ม/ลบ/แก้ไข)
     public void writeAllToday(List<Expense> items) throws IOException {
-        if (!Files.exists(TEMP_DIR)) Files.createDirectories(TEMP_DIR);
+        if (!Files.exists(TEMP_DIR))
+            Files.createDirectories(TEMP_DIR);
 
         StringBuilder sb = new StringBuilder();
         sb.append("description,category,amount,date\n");
         for (Expense e : items) {
-            sb.append(escape(e.getDescription())).append(",")
-              .append(escape(e.getCategory())).append(",")
-              .append(toStr(e.getAmount())).append(",")
-              .append(e.getDate()).append("\n");
+            sb.append(escape(normDesc(e.getDescription()))).append(",")
+                    .append(escape(e.getCategory())).append(",")
+                    .append(toStr(e.getAmount())).append(",")
+                    .append(e.getDate()).append("\n");
         }
 
         Path tmp = TEMP_FILE.resolveSibling("TodayTemp.csv.tmp");
@@ -125,8 +130,10 @@ public class TempExpenseStore {
 
     // Export ข้อมูลแบบกำหนดชื่อไฟล์เอง (เก็บใน ./File/Export)
     public void exportCustom(String filename, double budget) throws IOException {
-        if (!Files.exists(EXPORT_DIR)) Files.createDirectories(EXPORT_DIR);
-        if (!filename.toLowerCase().endsWith(".csv")) filename += ".csv";
+        if (!Files.exists(EXPORT_DIR))
+            Files.createDirectories(EXPORT_DIR);
+        if (!filename.toLowerCase().endsWith(".csv"))
+            filename += ".csv";
         Path out = EXPORT_DIR.resolve(filename);
         exportCustomInternal(out.toString(), budget);
     }
@@ -141,7 +148,7 @@ public class TempExpenseStore {
 
     // สร้าง Path ปลายทางของ Log รายเดือน (File/Logs/ปี/เดือน/วันที่.csv)
     private Path buildMonthlyLogPath(LocalDate date) {
-        String year  = String.valueOf(date.getYear());
+        String year = String.valueOf(date.getYear());
         String month = String.format("%02d", date.getMonthValue());
         return LOGS_DIR.resolve(year).resolve(month).resolve(date.toString() + ".csv");
     }
@@ -169,11 +176,12 @@ public class TempExpenseStore {
             totalSpent += amt;
             remaining -= amt;
 
-            sb.append(escape(e.getDescription())).append(",")
-              .append(escape(e.getCategory())).append(",")
-              .append(toStr(amt)).append(",")
-              .append(e.getDate()).append(",")
-              .append(toStr(remaining)).append("\n");
+            // ตัดช่องว่างหน้า-หลัง description ก่อนเขียนไฟล์
+            sb.append(escape(normDesc(e.getDescription()))).append(",")
+                    .append(escape(e.getCategory())).append(",")
+                    .append(toStr(amt)).append(",")
+                    .append(e.getDate()).append(",")
+                    .append(toStr(remaining)).append("\n");
         }
 
         sb.insert(0, "# summary," + toStr(budget) + "," + items.size() + ","
@@ -186,12 +194,25 @@ public class TempExpenseStore {
     }
 
     // ---------- Helper ----------
-    private static String toStr(double v) { return String.format(Locale.US, "%.2f", v); }
-    private static double parseDouble(String s) { return (s == null || s.isBlank()) ? 0.0 : Double.parseDouble(s.trim()); }
+    private static String toStr(double v) {
+        return String.format(Locale.US, "%.2f", v);
+    }
+
+    private static double parseDouble(String s) {
+        return (s == null || s.isBlank()) ? 0.0 : Double.parseDouble(s.trim());
+    }
+
     private static String escape(String s) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         String x = s.replace("\"", "\"\"");
-        if (x.contains(",") || x.contains("\n")) return "\"" + x + "\"";
+        if (x.contains(",") || x.contains("\n"))
+            return "\"" + x + "\"";
         return x;
+    }
+
+    // ตัดช่องว่างหน้า-หลัง ถ้า null ให้เป็น "" 
+    private static String normDesc(String s) {
+        return (s == null) ? "" : s.trim();
     }
 }

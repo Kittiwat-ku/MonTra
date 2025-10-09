@@ -62,7 +62,7 @@ public class Welcome extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (appContext.getCategoryService().getDailyBudget() == 0.0) {
-                    controller.showPage("Budget");
+                    controller.showPage("FBudget");
                 } else {
                     controller.showPage("Home");
                 }

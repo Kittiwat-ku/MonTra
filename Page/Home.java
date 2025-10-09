@@ -9,9 +9,13 @@ import Controller.AppController;
 import Service.AppContext;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import chart.ModelPieChart;
+import chart.PieChart;
+
 public class Home extends JPanel {
     private final AppContext appContext;
     private JScrollPane scroll;
+    private RoundedPanel chartPanel;
 
     public Home(AppController controller, AppContext appContext) {
         this.appContext = appContext;
@@ -77,9 +81,12 @@ public class Home extends JPanel {
         line2.setBounds(240, 100, 150, 5);
         contentPanel.add(line2);
 
-        RoundedPanel chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
+        chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setLayout(new BorderLayout());
-        chartPanel.setBounds(75, 200, 220, 220);
+        chartPanel.setBounds(65, 200, 230, 230);
+
+        PieChart pieChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
+        chartPanel.add(pieChart, BorderLayout.CENTER);
 
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
@@ -92,7 +99,6 @@ public class Home extends JPanel {
         contentPanel.add(list);
 
         JPanel listPanel = new JPanel(new BorderLayout());
-
         JPanel head = new JPanel(new GridLayout(1, 3));
         head.setBackground(Color.LIGHT_GRAY);
         head.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.GRAY));
@@ -155,8 +161,87 @@ public class Home extends JPanel {
                 totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
                 remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
                 reloadList(scroll, "./File/Temp/TodayTemp.csv");
+
+                chartPanel.removeAll();
+                PieChart newChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
+                chartPanel.add(newChart, BorderLayout.CENTER);
+                chartPanel.add(totalSpend, BorderLayout.SOUTH);
+                chartPanel.revalidate();
+                chartPanel.repaint();
             }
         });
+    }
+
+    private PieChart createPieChartFromFile(String filePath) {
+    PieChart pieChart = new PieChart();
+    pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
+    pieChart.setOpaque(false);
+
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        String line = br.readLine();
+        if (line == null) {
+            pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+            return pieChart;
+        }
+
+        java.util.Map<String, Double> categorySum = new java.util.LinkedHashMap<>();
+        java.util.Map<String, Color> categoryColor = new java.util.LinkedHashMap<>();
+
+        while ((line = br.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length >= 3) {
+                String category = parts[1].trim();
+                double amount = Double.parseDouble(parts[2].trim());
+
+                categorySum.put(category, categorySum.getOrDefault(category, 0.0) + amount);
+                if (!categoryColor.containsKey(category)) {
+                    categoryColor.put(category, generateColorFromName(category));
+                }
+            }
+        }
+
+        double totalSpent = categorySum.values().stream().mapToDouble(Double::doubleValue).sum();
+        double remaining = 0;
+        double budget = 0;
+        try {
+            remaining = appContext.getRemining();
+            budget = appContext.getCategoryService().getDailyBudget();
+        } catch (Exception e) {
+
+        }
+
+        if (!categorySum.isEmpty()) {
+            for (String cat : categorySum.keySet()) {
+                double value = categorySum.get(cat);
+                Color color = categoryColor.getOrDefault(cat, Color.GRAY);
+                pieChart.addData(new ModelPieChart(cat, value, color));
+            }
+
+            if (remaining > 0) {
+                pieChart.addData(new ModelPieChart("Remaining", remaining, Color.BLUE));
+            }
+            if (remaining < 0) {
+                pieChart.addData(new ModelPieChart("Over", remaining, Color.red));
+            }
+
+        } else {
+            pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+    }
+
+    return pieChart;
+}
+
+    private Color generateColorFromName(String name) {
+        int hash = Math.abs(name.hashCode());
+        float hue = (hash % 360) / 360f;
+        float saturation = 0.6f + ((hash % 100) / 500f);
+        float brightness = 0.85f;
+        return Color.getHSBColor(hue, saturation, brightness);
     }
 
     Color findcolor(double remaining, double budget) {
@@ -167,89 +252,87 @@ public class Home extends JPanel {
     }
 
     private JScrollPane showlist(String filePath) {
-    DefaultListModel<String[]> model = new DefaultListModel<>();
+        DefaultListModel<String[]> model = new DefaultListModel<>();
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-        String line;
-        reader.readLine(); // skip header
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts.length >= 3) {
-                model.addElement(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim()});
-            }
-        }
-    } catch (IOException e) {
-        model.addElement(new String[]{"NO Data", "", ""});
-    }
-
-    JList<String[]> list = new JList<>(model);
-    list.setFixedCellHeight(40);
-    list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-    list.setBackground(new Color(245, 245, 245));
-
-    list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
-
-        JPanel infoPanel = new JPanel(new GridLayout(1, 3));
-        infoPanel.setOpaque(false);
-        infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
-        infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
-        infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
-        row.add(infoPanel, BorderLayout.CENTER);
-
-        // แสดงปุ่ม X เฉพาะตอนเลือก
-        if (isSelected) {
-            JButton delete = new JButton("X");
-            delete.setFocusable(false);
-            delete.setBorderPainted(false);
-            delete.setContentAreaFilled(false);
-            delete.setForeground(Color.RED);
-            delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            row.add(delete, BorderLayout.EAST);
-        }
-
-        if (isSelected) row.setBackground(new Color(230, 240, 255));
-        else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
-
-        return row;
-    });
-
-    // เพิ่ม mouse listener เพื่อจับคลิกใน "โซนลบ" ทางขวา
-    final int DELETE_HITBOX_WIDTH = 36; 
-    list.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            int idx = list.locationToIndex(e.getPoint());
-            if (idx < 0) return;
-
-            Rectangle bounds = list.getCellBounds(idx, idx);
-            if (bounds == null) return;
-
-            int clickX = e.getX();
-            int deleteZoneStartX = bounds.x + bounds.width - DELETE_HITBOX_WIDTH;
-
-            // ให้กดลบได้เฉพาะตอนที่ item นั้นถูก select
-            boolean isSelected = (list.getSelectedIndex() == idx);
-
-            if (isSelected && clickX >= deleteZoneStartX) {
-                try {
-                    appContext.removeExpense(idx); // เรียกลบตาม index
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(list, "Delete failed: " + ex.getMessage());
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            reader.readLine();
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 3) {
+                    model.addElement(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim()});
                 }
             }
+        } catch (IOException e) {
+            model.addElement(new String[]{"NO Data", "", ""});
         }
-    });
 
-    JScrollPane scroll = new JScrollPane(list);
-    scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    scroll.getVerticalScrollBar().setUnitIncrement(16);
-    return scroll;
-}
+        JList<String[]> list = new JList<>(model);
+        list.setFixedCellHeight(40);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        list.setBackground(new Color(245, 245, 245));
+        list.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+
+        list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
+            JPanel row = new JPanel(new BorderLayout());
+            row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+
+            JPanel infoPanel = new JPanel(new GridLayout(1, 3));
+            infoPanel.setOpaque(false);
+            infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
+            row.add(infoPanel, BorderLayout.CENTER);
+
+            if (isSelected) {
+                JButton delete = new JButton("X");
+                delete.setFocusable(false);
+                delete.setBorderPainted(false);
+                delete.setContentAreaFilled(false);
+                delete.setForeground(Color.RED);
+                delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                row.add(delete, BorderLayout.EAST);
+            }
+
+            if (isSelected) row.setBackground(new Color(230, 240, 255));
+            else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
+
+            return row;
+        });
+
+        final int DELETE_HITBOX_WIDTH = 36;
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int idx = list.locationToIndex(e.getPoint());
+                if (idx < 0) return;
+
+                Rectangle bounds = list.getCellBounds(idx, idx);
+                if (bounds == null) return;
+
+                int clickX = e.getX();
+                int deleteZoneStartX = bounds.x + bounds.width - DELETE_HITBOX_WIDTH;
+
+                boolean isSelected = (list.getSelectedIndex() == idx);
+
+                if (isSelected && clickX >= deleteZoneStartX) {
+                    try {
+                        appContext.removeExpense(idx);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(list, "Delete failed: " + ex.getMessage());
+                    }
+                }
+            }
+        });
+
+        JScrollPane scroll = new JScrollPane(list);
+        scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
+    }
 
     private void reloadList(JScrollPane scroll, String filePath) {
         JScrollPane newScroll = showlist(filePath);
