@@ -53,7 +53,7 @@ public class Budget extends JPanel {
                 clearError();
                 controller.showPage("Setting");
             }
-            
+
         });
 
         b2.addActionListener(new ActionListener() {
@@ -76,19 +76,17 @@ public class Budget extends JPanel {
                 try {
                     double newBudget = Double.parseDouble(raw);
                     if (newBudget <= 0) {
-                        showError("Input cannot be 0 or negative!!!");
+                        showError("Input cannot be 0 and negative");
                         return;
                     }
 
-                    
                     appContext.setDailyBudget(newBudget);
                     clearError();
                     clear();
                     controller.showPage("Home");
 
-
                 } catch (NumberFormatException ex) {
-                    showError("Input must be all number");
+                    showError("Input must be number");
                 } catch (Exception ex) {
                     // other exception
                     showError("Error please try again");
@@ -98,7 +96,8 @@ public class Budget extends JPanel {
         });
 
     }
-    private void clear(){
+
+    private void clear() {
         description.setText("");
     }
 
