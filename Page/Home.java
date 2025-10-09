@@ -7,13 +7,14 @@ import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
 import Service.AppContext;
-
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 public class Home extends JPanel {
-
+    private final AppContext appContext;
     private JScrollPane scroll;
 
     public Home(AppController controller, AppContext appContext) {
-
+        this.appContext = appContext;
         setLayout(new BorderLayout());
         setOpaque(false);
         JPanel contentPanel = new JPanel(null);
@@ -166,61 +167,89 @@ public class Home extends JPanel {
     }
 
     private JScrollPane showlist(String filePath) {
-        DefaultListModel<String[]> model = new DefaultListModel<>();
+    DefaultListModel<String[]> model = new DefaultListModel<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            reader.readLine();
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 3) {
-                    model.addElement(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim()});
-                }
+    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        String line;
+        reader.readLine(); // skip header
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length >= 3) {
+                model.addElement(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim()});
             }
-        } catch (IOException e) {
-            model.addElement(new String[]{"NO Data", "", ""});
+        }
+    } catch (IOException e) {
+        model.addElement(new String[]{"NO Data", "", ""});
+    }
+
+    JList<String[]> list = new JList<>(model);
+    list.setFixedCellHeight(40);
+    list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+    list.setBackground(new Color(245, 245, 245));
+
+    list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+
+        JPanel infoPanel = new JPanel(new GridLayout(1, 3));
+        infoPanel.setOpaque(false);
+        infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
+        infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
+        infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
+        row.add(infoPanel, BorderLayout.CENTER);
+
+        // แสดงปุ่ม X เฉพาะตอนเลือก
+        if (isSelected) {
+            JButton delete = new JButton("X");
+            delete.setFocusable(false);
+            delete.setBorderPainted(false);
+            delete.setContentAreaFilled(false);
+            delete.setForeground(Color.RED);
+            delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            row.add(delete, BorderLayout.EAST);
         }
 
-        JList<String[]> list = new JList<>(model);
-        list.setFixedCellHeight(40);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        list.setBackground(new Color(245, 245, 245));
+        if (isSelected) row.setBackground(new Color(230, 240, 255));
+        else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
 
-        list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
-            JPanel row = new JPanel(new BorderLayout());
-            row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        return row;
+    });
 
-            JPanel infoPanel = new JPanel(new GridLayout(1, 3));
-            infoPanel.setOpaque(false);
-            infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
-            infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
-            infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
-            row.add(infoPanel, BorderLayout.CENTER);
+    // เพิ่ม mouse listener เพื่อจับคลิกใน "โซนลบ" ทางขวา
+    final int DELETE_HITBOX_WIDTH = 36; 
+    list.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int idx = list.locationToIndex(e.getPoint());
+            if (idx < 0) return;
 
-            if (isSelected) {
-                JButton delete = new JButton("❌");
-                delete.setFocusable(false);
-                delete.setBorderPainted(false);
-                delete.setBackground(Color.WHITE);
-                delete.setForeground(Color.RED);
-                delete.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                row.add(delete, BorderLayout.EAST);
+            Rectangle bounds = list.getCellBounds(idx, idx);
+            if (bounds == null) return;
 
+            int clickX = e.getX();
+            int deleteZoneStartX = bounds.x + bounds.width - DELETE_HITBOX_WIDTH;
+
+            // ให้กดลบได้เฉพาะตอนที่ item นั้นถูก select
+            boolean isSelected = (list.getSelectedIndex() == idx);
+
+            if (isSelected && clickX >= deleteZoneStartX) {
+                try {
+                    appContext.removeExpense(idx); // เรียกลบตาม index
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(list, "Delete failed: " + ex.getMessage());
+                }
             }
+        }
+    });
 
-            if (isSelected) row.setBackground(new Color(230, 240, 255));
-            else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
-
-            return row;
-        });
-
-        JScrollPane scroll = new JScrollPane(list);
-        scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        return scroll;
-    }
+    JScrollPane scroll = new JScrollPane(list);
+    scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    return scroll;
+}
 
     private void reloadList(JScrollPane scroll, String filePath) {
         JScrollPane newScroll = showlist(filePath);
