@@ -140,11 +140,11 @@ public class PieChart extends JComponent {
     }
 
     private void drawPopupLabel(Graphics2D g2, double size, double angle, double labelX, double labelY, String text, String detail) {
-        float fontSize = (float) (getFont().getSize() * size * 0.0035f);
+        float fontSize = (float) (getFont().getSize() * size * 0.0065f);
         boolean up = !(angle > 0 && angle < 180);
-        double space = size * 0.03f;
-        double spaceV = size * 0.01f;
-        double paceH = size * 0.01f;
+        double space = size * 0.05f;
+        double spaceV = size * 0.025f;
+        double paceH = size * 0.02f;
         FontMetrics fm1 = g2.getFontMetrics(getFont().deriveFont(Font.PLAIN, fontSize));
         FontMetrics fm2 = g2.getFontMetrics(getFont().deriveFont(Font.BOLD, fontSize));
         Rectangle2D r1 = fm1.getStringBounds(text, g2);
