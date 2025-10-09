@@ -19,6 +19,8 @@ import Service.AppContext;
 
 public class RemoveCat extends JPanel {
 
+    private final JLabel errorLabel;
+
     public RemoveCat(AppController controller, AppContext appContext) {
         setLayout(null);
 
@@ -29,8 +31,16 @@ public class RemoveCat extends JPanel {
         add(b1);
 
         JComboBox<String> c = province_to_combobox(appContext.getCategoryService().getCategory());
-        c.setBounds(57, 150, 250, 75);
+        c.setBounds(57, 150, 250, 50);
+        c.setSelectedIndex(-1); // เริ่มต้น: ไม่เลือกอะไร -> getSelectedItem() จะเป็น null
         add(c);
+
+        // error label
+        errorLabel = new JLabel("");
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        errorLabel.setBounds(57, 230, 280, 20);
+        add(errorLabel);
 
         JButton b2 = new JButton(" Remove ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -41,36 +51,65 @@ public class RemoveCat extends JPanel {
         b1.addActionListener(e -> controller.showPage("CategoryPath"));
 
         b2.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
+                Object selected = c.getSelectedItem();
+                if (selected == null) {
+                    showError("Input cannot be null"); // ยังไม่เลือกหมวดหมู่
+                    return;
+                }
+                String cat = selected.toString().trim();
+                if (cat.isEmpty()) {
+                    showError("Input cannot be null");
+                    return;
+                }
+
                 try {
-                    appContext.RemoveCat((String) c.getSelectedItem());
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                    clearError();
+                    appContext.RemoveCat(cat);
+                    // รีเฟรชคอมโบหลังลบ (ให้ไปอยู่ที่ไม่เลือกอะไรอีกครั้ง)
+                    refreshComboItems(c, appContext);
+                    c.setSelectedIndex(-1);
+                    // กลับหน้าเดิมถ้าต้องการ:
+                    // controller.showPage("CategoryPath");
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    showError("Cannot remove category. Please try again.");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showError("Unexpected error. Please try again.");
                 }
             }
-
         });
+
         appContext.addListener(evt -> {
             if ("UpdateCatList".equals(evt.getPropertyName())) {
-
-                List<String> tmp = appContext.getCategoryService().getCategory();
-                c.removeAllItems();
-                for (String string : tmp) {
-                    c.addItem(string);
-                }
+                refreshComboItems(c, appContext);
+                c.setSelectedIndex(-1);
             }
         });
     }
 
+    private void refreshComboItems(JComboBox<String> combo, AppContext appContext) {
+        List<String> tmp = appContext.getCategoryService().getCategory();
+        combo.removeAllItems();
+        for (String s : tmp) {
+            combo.addItem(s);
+        }
+    }
+
+    private void showError(String msg) {
+        errorLabel.setText(msg);
+    }
+
+    private void clearError() {
+        errorLabel.setText("");
+    }
+
     private JComboBox<String> province_to_combobox(List<String> s) {
         JComboBox<String> tmp = new JComboBox<>();
-        for (String string : s) {
-            tmp.addItem(string);
-        }
+        for (String string : s) tmp.addItem(string);
         return tmp;
-
     }
 
     @Override
@@ -90,9 +129,9 @@ public class RemoveCat extends JPanel {
         float[] dist = { 0.0f, 0.5f, 1.0f };
 
         Color[] colors = {
-                new Color(0x4A5C58),
-                new Color(0x0A5C36),
-                new Color(0x1F2C2E)
+            new Color(0x4A5C58),
+            new Color(0x0A5C36),
+            new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);

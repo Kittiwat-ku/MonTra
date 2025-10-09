@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class TempExpenseStore {
@@ -16,7 +15,7 @@ public class TempExpenseStore {
     private static final Path LOGS_DIR = Paths.get("./File/Logs");
     private static final Path EXPORT_DIR = Paths.get("./File/Export");
 
-    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // ---------- Constructor ----------
     public TempExpenseStore() throws IOException {

@@ -1,4 +1,4 @@
 #MonTra config
-#Thu Oct 09 21:22:07 ICT 2025
-dailyBudget=123.00
-categories=Food,Travel,Education
+#Thu Oct 09 23:39:04 ICT 2025
+dailyBudget=400.00
+categories=Food

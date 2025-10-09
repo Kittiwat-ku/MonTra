@@ -34,4 +34,7 @@ public class ExpenseService {
         tempExpenseStore.writeAllToday(dailyExpense.getExpenses());
         
     }
+
+    
+
 }
