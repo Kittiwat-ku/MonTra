@@ -1,4 +1,4 @@
-#MonTra config
-#Fri Oct 10 01:04:12 ICT 2025
-dailyBudget=10000.00
-categories=awd
+# Default config
+balance=0.00
+categories=Food,Travel,Education
+last_date=2025-10-10

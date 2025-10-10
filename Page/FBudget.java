@@ -59,7 +59,7 @@ public class FBudget extends JPanel {
                     }
 
                     
-                    appContext.setDailyBudget(newBudget);
+                    appContext.addIncome(newBudget);
                     clearError();
                     description.setText("");
                     controller.showPage("Home");

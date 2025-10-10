@@ -1,218 +1,204 @@
 package Expense;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.time.LocalDate;
-import java.util.*;
+import Service.StorageService;
+import Util.CsvUtils;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * TempExpenseStore
+ * -----------------
+ * จัดการไฟล์ Temp (รายการวันนี้) และการอัปเดต Logs รายเดือน
+ * รูปแบบไฟล์รายเดือน:
+ * # summary,<transactions>,<total_spent>,<remaining_end>
+ * # summary,transactions,total_spent,remaining_end
+ * description,category,amount,date
+ * GotoKU,Travel,70,2025-10-10T20:50:45.701211
+ * 
+ * จบวันก็ รวมยอด summary เดิม + ยอดของวันนี้ -> เขียน summary ใหม่ แล้ว append รายการวันนี้
+ */
 public class TempExpenseStore {
 
-    // ---------- Path หลัก ----------
-    private static final Path TEMP_DIR = Paths.get("./File/Temp");
-    private static final Path TEMP_FILE = TEMP_DIR.resolve("TodayTemp.csv");
-    private static final Path DATE_TRACK_FILE = TEMP_DIR.resolve("last_date.txt");
-    private static final Path LOGS_DIR = Paths.get("./File/Logs");
-    private static final Path EXPORT_DIR = Paths.get("./File/Export");
+    private final StorageService storage;
 
-    // private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    // ---------- Constructor ----------
-    public TempExpenseStore() throws IOException {
-        initTempFile();
+    /** 
+     * Constructor: เรียก initAll() เพื่อเตรียมโฟลเดอร์/ไฟล์พื้นฐาน 
+     * */
+    public TempExpenseStore(StorageService storage) throws IOException {
+        if (storage == null) {
+            throw new IllegalArgumentException("storage must not be null");
+        }
+        this.storage = storage;
+        this.storage.initAll();
     }
 
-    // สร้างโฟลเดอร์และไฟล์พื้นฐาน ถ้ายังไม่มี
-    private void initTempFile() throws IOException {
-        if (!Files.exists(TEMP_DIR))
-            Files.createDirectories(TEMP_DIR);
-        if (!Files.exists(TEMP_FILE))
-            resetToday();
-        if (!Files.exists(DATE_TRACK_FILE)) {
-            Files.writeString(DATE_TRACK_FILE, LocalDate.now().toString(), StandardCharsets.UTF_8);
-        }
-    }
-
-    // อ่านวันที่ล่าสุดจาก last_date.txt (ถ้าไม่มีไฟล์จะสร้างเป็นวันที่ปัจจุบัน)
-    private LocalDate getLastDate() throws IOException {
-        if (!Files.exists(DATE_TRACK_FILE)) {
-            LocalDate today = LocalDate.now();
-            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-            return today;
-        }
-        String s = Files.readString(DATE_TRACK_FILE, StandardCharsets.UTF_8).trim();
-        if (s.isEmpty()) {
-            LocalDate today = LocalDate.now();
-            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-            return today;
-        }
-        return LocalDate.parse(s);
-    }
-
-    // ใช้ตอนเริ่มโปรแกรม: ตรวจว่าวันเปลี่ยนหรือยัง
-    // ถ้าวันใหม่ → export log ของวันเก่า + reset temp + update วันที่ใหม่
-    // ถ้าวันเดิม → ไม่ทำอะไร
-    public void exportTodayToLogs(double budget) throws IOException {
-        LocalDate lastDate = getLastDate();
-        LocalDate today = LocalDate.now();
-
-        if (!lastDate.equals(today)) {
-            System.out.println("[TempExpenseStore] Detected new day: " + today);
-
-            // 1) export log ของวันเก่า
-            exportMonthlyLogFor(budget, lastDate);
-
-            // 2) reset temp สำหรับวันใหม่
-            resetToday();
-
-            // 3) update last_date.txt เป็นวันนี้
-            Files.writeString(DATE_TRACK_FILE, today.toString(), StandardCharsets.UTF_8);
-
-            System.out.println("[TempExpenseStore] Export complete and temp reset for new day.");
-        } else {
-            System.out.println("[TempExpenseStore] Still the same day: " + today);
-        }
-    }
-
-    // ล้างข้อมูล Temp และเขียนหัวข้อใหม่
+    // จัดการ Temp วันนี้ 
+    /**
+     *  ล้าง Temp แล้วเขียน header ใหม่ 
+     * */
     public void resetToday() throws IOException {
-        Files.write(TEMP_FILE, List.of("description,category,amount,date"), StandardCharsets.UTF_8);
+        storage.clearTempToHeader();
     }
 
-    // อ่านข้อมูลจาก Temp แล้วคืนค่าเป็น List<Expense>
+    /** 
+     * อ่านรายการวันนี้จาก Temp (ข้ามบรรทัดหัวตาราง) 
+     * */
     public List<Expense> readToday() throws IOException {
-        if (!Files.exists(TEMP_FILE))
-            resetToday();
-        List<String> lines = Files.readAllLines(TEMP_FILE, StandardCharsets.UTF_8);
+        List<String> lines = storage.readTempLines();
         List<Expense> out = new ArrayList<>();
-        for (int i = 1; i < lines.size(); i++) {
+
+        int i = 0;
+        while (i < lines.size()) {
             String line = lines.get(i);
-            if (line.isBlank())
+            if (i == 0) { // header
+                i++;
                 continue;
+            }
+            if (line == null || line.trim().isEmpty()) {
+                i++;
+                continue;
+            }
+
             String[] a = line.split(",", -1);
-            if (a.length < 4)
-                continue;
-            out.add(new Expense(
-                    a[0].trim(), // description
-                    a[1].trim(), // category
-                    parseDouble(a[2]), // amount
-                    a[3].trim() // date
-            ));
+            if (a.length >= 4) {
+                String description = CsvUtils.trimOrEmpty(a[0]);
+                String category = CsvUtils.trimOrEmpty(a[1]);
+                double amount = CsvUtils.parseDoubleOrZero(a[2]);
+                String dateStr = CsvUtils.trimOrEmpty(a[3]);
+                out.add(new Expense(description, category, amount, dateStr));
+            }
+            i++;
         }
         return out;
     }
 
-    // เขียนข้อมูลทั้งหมดกลับเข้า Temp (ใช้ตอนเพิ่ม/ลบ/แก้ไข)
+    /**
+     * เขียนรายการวันนี้ทั้งหมดกลับเข้า Temp (ทับทั้งไฟล์) 
+     * */
     public void writeAllToday(List<Expense> items) throws IOException {
-        if (!Files.exists(TEMP_DIR))
-            Files.createDirectories(TEMP_DIR);
+        List<String> lines = new ArrayList<>();
+        lines.add("description,category,amount,date");
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("description,category,amount,date\n");
-        for (Expense e : items) {
-            sb.append(escape(normDesc(e.getDescription()))).append(",")
-                    .append(escape(e.getCategory())).append(",")
-                    .append(toStr(e.getAmount())).append(",")
-                    .append(e.getDate()).append("\n");
+        if (items != null) {
+            for (Expense e : items) {
+                String row = CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getDescription())) + ","
+                        + CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getCategory())) + ","
+                        + CsvUtils.fmt2(e.getAmount()) + ","
+                        + CsvUtils.trimOrEmpty(e.getDate());
+                lines.add(row);
+            }
         }
-
-        Path tmp = TEMP_FILE.resolveSibling("TodayTemp.csv.tmp");
-        Files.writeString(tmp, sb.toString(), StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        try {
-            Files.move(tmp, TEMP_FILE,
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException ex) {
-            Files.move(tmp, TEMP_FILE, StandardCopyOption.REPLACE_EXISTING);
-        }
+        storage.writeTempLines(lines);
     }
 
-    // Export ข้อมูลแบบกำหนดชื่อไฟล์เอง (เก็บใน ./File/Export)
-    public void exportCustom(String filename, double budget) throws IOException {
-        if (!Files.exists(EXPORT_DIR))
-            Files.createDirectories(EXPORT_DIR);
-        if (!filename.toLowerCase().endsWith(".csv"))
-            filename += ".csv";
-        Path out = EXPORT_DIR.resolve(filename);
-        exportCustomInternal(out.toString(), budget);
-    }
-
-    // Export Log รายเดือน (สำหรับ exportTodayToLogs ใช้)
-    private void exportMonthlyLogFor(double budget, LocalDate logDate) throws IOException {
-        Path out = buildMonthlyLogPath(logDate);
-        Files.createDirectories(out.getParent());
-        exportCustomInternal(out.toString(), budget);
-        System.out.println("[TempExpenseStore] Log exported to " + out.toAbsolutePath());
-    }
-
-    // สร้าง Path ปลายทางของ Log รายเดือน (File/Logs/ปี/เดือน/วันที่.csv)
-    private Path buildMonthlyLogPath(LocalDate date) {
-        String year = String.valueOf(date.getYear());
-        String month = String.format("%02d", date.getMonthValue());
-        return LOGS_DIR.resolve(year).resolve(month).resolve(date.toString() + ".csv");
-    }
-
-    // Core export: เขียนไฟล์ CSV จริง
-    private void exportCustomInternal(String outputPath, double budget) throws IOException {
+    // อัปเดต Logs รายเดือนเมื่อ "ปิดวัน" 
+    /**
+     * เพิ่มรายการของ logDate ลงไฟล์รายเดือน และอัปเดต summary
+     * ด้านบนให้เป็นค่าล่าสุดของทั้งเดือน
+     * 
+     * @param logDate วันที่ที่จะลง log (เช่น วันที่ของวันก่อนหน้าในช่วง rollover)
+     * @param remainingEnd ยอดคงเหลือปลายวัน (แนวกระเป๋าเงิน)
+     */
+    public void appendDailyToMonthlyLog(LocalDate logDate, double remainingEnd) throws IOException {
         List<Expense> items = readToday();
-        if (items.isEmpty()) {
-            System.out.println("[TempExpenseStore] No data to export.");
+        if (items == null || items.isEmpty()) {
+            System.out.println("[TempExpenseStore] No data to append (temp is empty).");
             return;
         }
 
-        Path outFile = Paths.get(outputPath);
-        Files.createDirectories(outFile.getParent());
-
-        double remaining = budget;
-        double totalSpent = 0.0;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("# summary,budget,transactions,total_spent,remaining_end\n");
-        sb.append("description,category,amount,date,remaining\n");
-
+        // รวมยอดวันนี้
+        double totalSpentToday = 0.0;
         for (Expense e : items) {
-            double amt = e.getAmount();
-            totalSpent += amt;
-            remaining -= amt;
+            totalSpentToday += e.getAmount();
+        }
+        int transactionsToday = items.size();
 
-            // ตัดช่องว่างหน้า-หลัง description ก่อนเขียนไฟล์
-            sb.append(escape(normDesc(e.getDescription()))).append(",")
-                    .append(escape(e.getCategory())).append(",")
-                    .append(toStr(amt)).append(",")
-                    .append(e.getDate()).append(",")
-                    .append(toStr(remaining)).append("\n");
+        // อ่านไฟล์เดิมของเดือน
+        List<String> oldLines = storage.readMonthlyLogLines(logDate);
+
+        // ดึง summary เดิม (ถ้ามี)
+        int prevTrans = 0;
+        double prevSpent = 0.0;
+        for (String line : oldLines) {
+            if (line == null)
+                continue;
+            String t = line.trim();
+            if (t.startsWith("# summary,")) {
+                String[] parts = t.split(",", -1);
+                if (parts.length >= 4) {
+                    try {
+                        prevTrans += Integer.parseInt(parts[1].trim());
+                    } catch (NumberFormatException ignore) {
+                    }
+                    try {
+                        prevSpent += Double.parseDouble(parts[2].trim());
+                    } catch (NumberFormatException ignore) {
+                    }
+                }
+            }
         }
 
-        sb.insert(0, "# summary," + toStr(budget) + "," + items.size() + ","
-                + toStr(totalSpent) + "," + toStr(remaining) + "\n");
+        int newTransTotal = prevTrans + transactionsToday;
+        double newSpentTotal = prevSpent + totalSpentToday;
 
-        Files.writeString(outFile, sb.toString(), StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        // เขียนหัว summary ใหม่ (ทับของเดิม)
+        StringBuilder head = new StringBuilder();
+        head.append("# summary,")
+                .append(newTransTotal).append(",")
+                .append(CsvUtils.fmt2(newSpentTotal)).append(",")
+                .append(CsvUtils.fmt2(remainingEnd)).append("\n")
+                .append("# summary,transactions,total_spent,remaining_end").append("\n");
 
-        System.out.println("[TempExpenseStore] Export successful: " + outFile.toAbsolutePath());
-    }
+        // เก็บเนื้อหาเดิมที่ไม่ใช่ summary
+        List<String> bodyOld = new ArrayList<>();
+        for (String line : oldLines) {
+            if (line == null) {
+                continue;
+            }
 
-    // ---------- Helper ----------
-    private static String toStr(double v) {
-        return String.format(Locale.US, "%.2f", v);
-    }
+            String t = line.trim();
+            if (!t.startsWith("# summary")) {
+                bodyOld.add(line);
+            }
 
-    private static double parseDouble(String s) {
-        return (s == null || s.isBlank()) ? 0.0 : Double.parseDouble(s.trim());
-    }
+        }
 
-    private static String escape(String s) {
-        if (s == null)
-            return "";
-        String x = s.replace("\"", "\"\"");
-        if (x.contains(",") || x.contains("\n"))
-            return "\"" + x + "\"";
-        return x;
-    }
+        // ตรวจ header columns
+        boolean hasHeader = false;
+        for (String l : bodyOld) {
+            if (l != null && l.trim().equalsIgnoreCase("description,category,amount,date")) {
+                hasHeader = true;
+                break;
+            }
+        }
 
-    // ตัดช่องว่างหน้า-หลัง ถ้า null ให้เป็น "" 
-    private static String normDesc(String s) {
-        return (s == null) ? "" : s.trim();
+        // สร้าง body ใหม่: header (ถ้ายังไม่มี) + เนื้อหาเดิม + รายการวันนี้
+        StringBuilder body = new StringBuilder();
+        if (!hasHeader){
+            body.append("description,category,amount,date").append("\n");
+        }
+            
+
+        for (String l : bodyOld){
+            body.append(l).append("\n");
+        }
+            
+
+        for (Expense e : items) {
+            body.append(CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getDescription()))).append(",")
+                    .append(CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getCategory()))).append(",")
+                    .append(CsvUtils.fmt2(e.getAmount())).append(",")
+                    .append(CsvUtils.trimOrEmpty(e.getDate())).append("\n");
+        }
+
+        // เขียนทับทั้งไฟล์: summary ใหม่ + body ใหม่
+        String finalContent = head.toString() + body.toString();
+        storage.writeMonthlyLogAll(logDate, finalContent);
+
+        System.out.println(
+                "[TempExpenseStore] Monthly log updated: " + storage.buildMonthlyLogPath(logDate).toAbsolutePath());
     }
 }

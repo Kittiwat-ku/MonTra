@@ -31,7 +31,7 @@ public class RemoveCat extends JPanel {
         b1.setForeground(Color.BLACK);
         add(b1);
 
-        c = province_to_combobox(appContext.getCategoryService().getCategory());
+        c = province_to_combobox(appContext.getCategories());
         c.setBounds(57, 150, 250, 50);
         c.setSelectedIndex(-1); // เริ่มต้น: ไม่เลือกอะไร -> getSelectedItem() จะเป็น null
         add(c);
@@ -75,8 +75,8 @@ public class RemoveCat extends JPanel {
 
                 try {
                     clearError();
-                    appContext.RemoveCat(cat);
-                    // รีเฟรชคอมโบหลังลบ (ให้ไปอยู่ที่ไม่เลือกอะไรอีกครั้ง)
+                    appContext.removeCategory(cat);
+                    //ลบเสร็จรีเสร็จไปitemว่าง
                     refreshComboItems(c, appContext);
                     clear();
                 } catch (IOException ex) {
@@ -98,7 +98,7 @@ public class RemoveCat extends JPanel {
     }
 
     private void refreshComboItems(JComboBox<String> combo, AppContext appContext) {
-        List<String> tmp = appContext.getCategoryService().getCategory();
+        List<String> tmp = appContext.getCategories();
         combo.removeAllItems();
         for (String s : tmp) {
             combo.addItem(s);
