@@ -1,81 +1,78 @@
 import javax.swing.*;
 
-import Config.ConfigManager;
 import Controller.AppController;
-import Expense.DailyExpense;
-import Expense.TempExpenseStore;
+import Page.*;
+import Service.AppContext;
 
 import java.awt.*;
 import java.io.IOException;
-import java.time.LocalDate;
-
-import Page.*;
-import Service.AppContext;
-import Service.CategoryService;
-import Service.ExpenseService;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private AppController controller;
 
-    private AppContext appContext;
-    private ConfigManager configManager;
-    private CategoryService categoryService;
-    private DailyExpense dailyExpense;
-    private ExpenseService expenseService;
-    private TempExpenseStore tempExpenseStore;
-    
+    private AppContext appContext; // แหล่งรวมบริการทั้งหมด
 
-    public Main() throws IOException {
-
-        configManager = new ConfigManager();
-        categoryService = new CategoryService(configManager);
-        dailyExpense = new DailyExpense();
-        tempExpenseStore = new TempExpenseStore();
-        expenseService = new ExpenseService(dailyExpense,tempExpenseStore);
-        appContext = new AppContext(configManager, categoryService, dailyExpense, expenseService,tempExpenseStore);
-        
+    public Main() {
+        // สร้าง AppContext ครั้งเดียวให้ทั้งแอป
+        try {
+            appContext = new AppContext(); // ภายในจัดการ Storage/Config/Temp/Lifecycle ให้แล้ว
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Failed to initialize application context:\n" + e.getMessage(),
+                    "Initialization Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            System.exit(1);
+        }
 
         setTitle("Montra");
         setSize(375, 812);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
+
+        // Layout หลัก + Controller
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
-        controller = new AppController(cardLayout, mainPanel);
+        try {
+            controller = new AppController(cardLayout, mainPanel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        Image icon = new ImageIcon(getClass().getResource("/image/logo1.png")).getImage();
-        setIconImage(icon);
-        setVisible(true);
+        // ไอคอน (ถ้า resource ไม่มี ให้ห่อไว้กัน NPE)
+        try {
+            Image icon = new ImageIcon(getClass().getResource("/image/logo1.png")).getImage();
+            setIconImage(icon);
+        } catch (Exception ignore) { /* ไม่มีไอคอนไม่เป็นไร */ }
 
-        // Page
-        mainPanel.add(new Welcome(controller, appContext), "Welcome");
-        mainPanel.add(new Home(controller, appContext), "Home");
-        mainPanel.add(new More(controller), "More");
-        mainPanel.add(new Add(controller, appContext), "Add");
-        mainPanel.add(new Setting(controller), "Setting");
-        mainPanel.add(new Budget(controller, appContext), "Budget");
-        mainPanel.add(new Sumpath(controller), "Sumpath");
-        mainPanel.add(new CategoryPath(controller), "CategoryPath");
-        mainPanel.add(new SetCat(controller, appContext), "SetCat");
-        mainPanel.add(new RemoveCat(controller, appContext), "RemoveCat");
-        mainPanel.add(new Ep(controller, appContext), "Ep");
-        mainPanel.add(new FBudget(controller, appContext), "FBudget");
+        // --- Register Pages (ทุกหน้าใช้ appContext ชุดเดียว) ---
+        mainPanel.add(new Welcome(controller, appContext),     "Welcome");
+        mainPanel.add(new Home(controller, appContext),        "Home");
+        mainPanel.add(new More(controller),                    "More");
+        mainPanel.add(new Add(controller, appContext),         "Add");
+        mainPanel.add(new Setting(controller),                 "Setting");
+        mainPanel.add(new Budget(controller, appContext),      "Budget");
+        mainPanel.add(new Sumpath(controller),                 "Sumpath");
+        mainPanel.add(new CategoryPath(controller),            "CategoryPath");
+        mainPanel.add(new SetCat(controller, appContext),      "SetCat");
+        mainPanel.add(new RemoveCat(controller, appContext),   "RemoveCat");
+        mainPanel.add(new Ep(controller, appContext),          "Ep");
+        mainPanel.add(new FBudget(controller, appContext),     "FBudget");
 
         add(mainPanel);
-        cardLayout.show(mainPanel, "Welcome");
 
+        // หน้าแรก
+        cardLayout.show(mainPanel, "Welcome");
     }
 
     public static void main(String[] args) {
-        
         SwingUtilities.invokeLater(() -> {
-            try {
-                new Main().setVisible(true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Main frame = new Main();
+            frame.setVisible(true);
         });
     }
 }

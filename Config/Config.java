@@ -1,24 +1,32 @@
 package Config;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class Config {
-    private double dailyBudget;
-    private List<String> categories;
+    private double balance;           // ยอดคงเหลือในกระเป๋า
+    private List<String> categories;  // หมวดหมู่
+    private LocalDate lastDate;       // วันที่ล่าสุดที่เปิดโปรแกรม
 
-    public Config(double dailyBudget, List<String> categories) {
-        this.dailyBudget = dailyBudget;
+    public Config(double balance, List<String> categories) {
+        this(balance, categories, LocalDate.now());
+    }
+
+    public Config(double balance, List<String> categories, LocalDate lastDate) {
+        this.balance = balance;
         this.categories = new ArrayList<>(categories);
+        this.lastDate = lastDate;
     }
 
-    public double getDailyBudget() {
-        return dailyBudget;
+    // ====== Getter / Setter ======
+    public double getBalance() {
+        return balance;
     }
 
-    public void setDailyBudget(double v) {
-        this.dailyBudget = v;
+    public void setBalance(double v) {
+        this.balance = v;
     }
 
     public List<String> getCategories() {
@@ -32,5 +40,13 @@ public class Config {
 
     public void removeCategory(String c) {
         categories.remove(c);
+    }
+
+    public LocalDate getLastDate() {
+        return lastDate;
+    }
+
+    public void setLastDate(LocalDate lastDate) {
+        this.lastDate = lastDate;
     }
 }

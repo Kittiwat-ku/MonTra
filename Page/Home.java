@@ -31,10 +31,11 @@ public class Home extends JPanel {
         JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
 
         try {
-            double initBudget = appContext.getCategoryService().getDailyBudget();
-            budgetl2.setText(String.format("%,.2f", initBudget));
-            remainl2.setText(String.format("%,.2f", appContext.getRemining()));
-            totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
+            double balance = appContext.getBalance();
+            budgetl2.setText(String.format("%,.2f", balance));
+            remainl2.setText(String.format("%,.2f", balance));
+            double spent = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
+            totalSpend.setText("Total Spend: " + String.format("%,.2f", spent));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -61,7 +62,7 @@ public class Home extends JPanel {
         remainl1.setBounds(230, 40, 200, 60);
 
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
+        remainl2.setForeground(findcolor(appContext.getBalance()));
         remainl2.setBounds(250, 40, 200, 60);
 
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -109,7 +110,6 @@ public class Home extends JPanel {
         h1.setFont(hf); h2.setFont(hf); h3.setFont(hf);
         head.add(h1); head.add(h2); head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
-
         scroll = showlist("./File/Temp/TodayTemp.csv");
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(40, 500, 280, 180);
@@ -154,14 +154,21 @@ public class Home extends JPanel {
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
+        // ฟัง event จาก AppContext
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
-                remainl2.setText(String.format("%,.2f", appContext.getRemining()));
-                budgetl2.setText(String.format("%,.2f", appContext.getCategoryService().getDailyBudget()));
-                totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getDailyExpense().getSpent()));
-                remainl2.setForeground(findcolor(appContext.getRemining(), appContext.getCategoryService().getDailyBudget()));
+                // รีกับเป็นค่าในGuiห้ตรงกับMem
+                double balanceNow = appContext.getBalance();
+                remainl2.setText(String.format("%,.2f", balanceNow));
+                budgetl2.setText(String.format("%,.2f", balanceNow));
+                double spentNow = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
+                totalSpend.setText("Total Spend: " + String.format("%,.2f", spentNow));
+                remainl2.setForeground(findcolor(balanceNow));
+
+                // reload list จากไฟล์ temp
                 reloadList(scroll, "./File/Temp/TodayTemp.csv");
 
+                // reload chart
                 chartPanel.removeAll();
                 PieChart newChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
                 chartPanel.add(newChart, BorderLayout.CENTER);
@@ -173,68 +180,62 @@ public class Home extends JPanel {
     }
 
     private PieChart createPieChartFromFile(String filePath) {
-    PieChart pieChart = new PieChart();
-    pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
-    pieChart.setOpaque(false);
+        PieChart pieChart = new PieChart();
+        pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
+        pieChart.setOpaque(false);
 
-    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-        String line = br.readLine();
-        if (line == null) {
-            pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
-            return pieChart;
-        }
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line = br.readLine();
+            if (line == null) {
+                pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+                return pieChart;
+            }
 
-        java.util.Map<String, Double> categorySum = new java.util.LinkedHashMap<>();
-        java.util.Map<String, Color> categoryColor = new java.util.LinkedHashMap<>();
+            java.util.Map<String, Double> categorySum = new java.util.LinkedHashMap<>();
+            java.util.Map<String, Color> categoryColor = new java.util.LinkedHashMap<>();
 
-        while ((line = br.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts.length >= 3) {
-                String category = parts[1].trim();
-                double amount = Double.parseDouble(parts[2].trim());
-
-                categorySum.put(category, categorySum.getOrDefault(category, 0.0) + amount);
-                if (!categoryColor.containsKey(category)) {
-                    categoryColor.put(category, generateColorFromName(category));
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 3) {
+                    String category = parts[1].trim();
+                    double amount = 0.0;
+                    try {
+                        amount = Double.parseDouble(parts[2].trim());
+                    } catch (NumberFormatException ignore) {}
+                    categorySum.put(category, categorySum.getOrDefault(category, 0.0) + amount);
+                    if (!categoryColor.containsKey(category)) {
+                        categoryColor.put(category, generateColorFromName(category));
+                    }
                 }
             }
-        }
 
-        double totalSpent = categorySum.values().stream().mapToDouble(Double::doubleValue).sum();
-        double remaining = 0;
-        double budget = 0;
-        try {
-            remaining = appContext.getRemining();
-            budget = appContext.getCategoryService().getDailyBudget();
+            double remaining = appContext.getBalance();
+
+            if (!categorySum.isEmpty()) {
+                for (String cat : categorySum.keySet()) {
+                    double value = categorySum.get(cat);
+                    Color color = categoryColor.getOrDefault(cat, Color.GRAY);
+                    pieChart.addData(new ModelPieChart(cat, value, color));
+                }
+
+                if (remaining > 0) {
+                    pieChart.addData(new ModelPieChart("Remaining", remaining, new Color(70, 130, 180)));
+                } else if (remaining < 0) {
+                    // ใส่ค่าสัมบูรณ์ให้กราฟ
+                    pieChart.addData(new ModelPieChart("Over", Math.abs(remaining), Color.RED));
+                }
+
+            } else {
+                pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+            }
+
         } catch (Exception e) {
-
-        }
-
-        if (!categorySum.isEmpty()) {
-            for (String cat : categorySum.keySet()) {
-                double value = categorySum.get(cat);
-                Color color = categoryColor.getOrDefault(cat, Color.GRAY);
-                pieChart.addData(new ModelPieChart(cat, value, color));
-            }
-
-            if (remaining > 0) {
-                pieChart.addData(new ModelPieChart("Remaining", remaining, Color.BLUE));
-            }
-            if (remaining < 0) {
-                pieChart.addData(new ModelPieChart("Over", remaining, Color.red));
-            }
-
-        } else {
+            e.printStackTrace();
             pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+        return pieChart;
     }
-
-    return pieChart;
-}
 
     private Color generateColorFromName(String name) {
         int hash = Math.abs(name.hashCode());
@@ -244,10 +245,10 @@ public class Home extends JPanel {
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
-    Color findcolor(double remaining, double budget) {
-        double tmp = (remaining / budget) * 100;
-        if (tmp < 50 && tmp > 0) return Color.YELLOW;
-        else if (tmp <= 0) return Color.RED;
+    // เวอร์ชันใหม่: ใช้ threshold จาก balance (ไม่มี daily budget แล้ว)
+    private Color findcolor(double remaining) {
+        if (remaining <= 0) return Color.RED;
+        if (remaining < 500) return Color.YELLOW; // ปรับเกณฑ์ได้ตามที่ต้องการ
         return Color.WHITE;
     }
 

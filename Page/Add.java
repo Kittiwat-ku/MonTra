@@ -42,7 +42,7 @@ public class Add extends JPanel {
         amount.setBounds(30, 350, 300, 100);
         add(amount);
 
-        c = province_to_combobox(appContext.getCategoryService().getCategory());
+        c = province_to_combobox(appContext.getCategories());
         c.setBounds(57, 500, 250, 50);
         // ให้เริ่มต้น "ไม่เลือกอะไร" เพื่อให้ตรวจ null ได้จริง
         c.setSelectedIndex(-1);
@@ -115,9 +115,6 @@ public class Add extends JPanel {
                     clearError();
 
                     // clear
-                    // description.setText("");
-                    // amount.setText("");
-                    // c.setSelectedIndex(-1);
                     clear();
 
                     controller.showPage("Home");
@@ -135,7 +132,7 @@ public class Add extends JPanel {
 
         appContext.addListener(evt -> {
             if ("UpdateCatList".equals(evt.getPropertyName())) {
-                List<String> tmp = appContext.getCategoryService().getCategory();
+                List<String> tmp = appContext.getCategories();
                 c.removeAllItems();
                 for (String string : tmp) {
                     c.addItem(string);

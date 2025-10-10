@@ -80,7 +80,7 @@ public class Budget extends JPanel {
                         return;
                     }
 
-                    appContext.setDailyBudget(newBudget);
+                    appContext.addIncome(newBudget);
                     clearError();
                     clear();
                     controller.showPage("Home");

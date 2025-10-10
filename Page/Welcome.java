@@ -61,7 +61,7 @@ public class Welcome extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (appContext.getCategoryService().getDailyBudget() == 0.0) {
+                if (appContext.getBalance() == 0.0) {
                     controller.showPage("FBudget");
                 } else {
                     controller.showPage("Home");

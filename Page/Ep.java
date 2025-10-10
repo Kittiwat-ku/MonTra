@@ -3,7 +3,6 @@ package Page;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import javax.swing.*;
 
 import ButtonDesign.LabeledInputCard;
@@ -14,9 +13,12 @@ import Service.AppContext;
 public class Ep extends JPanel {
 
     private final JLabel errorLabel;
-    LabeledInputCard description;
+    private final AppContext appContext;
+    private LabeledInputCard description;
 
     public Ep(AppController controller, AppContext appContext) {
+        this.appContext = appContext;
+
         setLayout(null);
 
         JButton b1 = new PillButton("← Back");
@@ -44,66 +46,57 @@ public class Ep extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clear();
-                clearError();
-                controller.showPage("Home");
-            }
-            
+        // กลับหน้า Home
+        b1.addActionListener(e -> {
+            clear();
+            clearError();
+            controller.showPage("Home");
         });
 
-        b2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String raw = description.getText();
-                if (raw == null) raw = "";
-                String trimmed = raw.trim();
-
-                // validate filename
-                if (trimmed.isEmpty()) {
-                    showError("Filename cannot be empty");
-                    return;
-                }
-                String safe = trimmed.replaceAll("[\\\\/:*?\"<>|]", "_");
-
-                //precheck ว่ามีรายการในวันนี้ไหม
-                try {
-                    if (appContext.getDailyExpense() == null
-                            || appContext.getDailyExpense().getExpenses() == null
-                            || appContext.getDailyExpense().getExpenses().isEmpty()) {
-                        showError("Cannot export. Temp is empty.");
-                        return; 
-                    }
-                } catch (Exception ex) {
-                    showError("Cannot export. Temp is empty.");
-                    return;
-                }
-
-                //export
-                try {
-                    clearError();
-                    appContext.exportCustom(safe); 
-
-                    // clear and go back ถ้ามันExportได้
-                    clear();
-                    controller.showPage("Home");
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    showError("Cannot export. Temp may be empty.");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    showError("Unexpected error. Please try again.");
-                }
-            }
-        });
+        // กด Export
+        b2.addActionListener(e -> doExport(controller));
     }
+
+    private void doExport(AppController controller) {
+        clearError();
+
+        // --- validate filename ---
+        String raw = description.getText();
+        if (raw == null) raw = "";
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) {
+            showError("Filename cannot be empty");
+            return;
+        }
+        // แทนอักขระต้องห้ามในชื่อไฟล์
+        String safe = trimmed.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+        // --- เช็คว่ามีรายการในวันนี้หรือไม่ ---
+        try {
+            if (appContext.getTodayExpenses() == null || appContext.getTodayExpenses().isEmpty()) {
+                showError("Cannot export. Temp is empty.");
+                return;
+            }
+        } catch (Exception ex) {
+            showError("Cannot export. Temp is empty.");
+            return;
+        }
+
+        // --- export ---
+        try {
+            appContext.exportCustom(safe);   // จะบันทึกเป็น ./File/Export/<safe>.csv (เติม .csv อัตโนมัติ)
+            clear();
+            controller.showPage("Home");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showError("Export failed: " + ex.getMessage());
+        }
+    }
+
     private void clear(){
         description.setText("");
     }
+
     private void showError(String msg) {
         errorLabel.setText(msg);
     }
