@@ -20,7 +20,7 @@ public class Config {
         this.lastDate = lastDate;
     }
 
-    // ====== Getter / Setter ======
+    // Getter / Setter 
     public double getBalance() {
         return balance;
     }

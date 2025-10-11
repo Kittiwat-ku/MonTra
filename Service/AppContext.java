@@ -130,6 +130,19 @@ public class AppContext {
         configManager.save(config);
         pcs.firePropertyChange("reload", null, null);
     }
+    /**
+     * ลบBalance
+     * @param amount
+     * @throws IOException
+     */
+    public void removeIncome(double amount)throws IOException{
+        if (amount <= 0) {
+            throw new IllegalArgumentException("amount must be > 0");
+        }
+        config.setBalance(config.getBalance() - amount);
+        configManager.save(config);
+        pcs.firePropertyChange("reload", null, null);
+    }
 
     // คืนค่ารายชื่อหมวดหมู่
     public List<String> getCategories() {
