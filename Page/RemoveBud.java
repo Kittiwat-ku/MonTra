@@ -111,7 +111,7 @@ public class RemoveBud extends JPanel {
                         return;
                     }
 
-                    appContext.addIncome(newBudget);
+                    appContext.removeIncome(newBudget);
                     clearError();
                     clear();
                     controller.showPage("Home");
