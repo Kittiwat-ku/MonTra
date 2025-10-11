@@ -24,15 +24,12 @@ public class Home extends JPanel {
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
-        JLabel budgetl1 = new JLabel("฿");
-        JLabel budgetl2 = new JLabel(" ");
         JLabel remainl1 = new JLabel("฿");
         JLabel remainl2 = new JLabel(" ");
         JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
 
         try {
             double balance = appContext.getBalance();
-            budgetl2.setText(String.format("%,.2f", balance));
             remainl2.setText(String.format("%,.2f", balance));
             double spent = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
             totalSpend.setText("Total Spend: " + String.format("%,.2f", spent));
@@ -40,46 +37,30 @@ public class Home extends JPanel {
             e.printStackTrace();
         }
 
-        JLabel budgetl3 = new JLabel("Budget");
-        budgetl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
-        budgetl1.setForeground(Color.WHITE);
-        budgetl1.setBounds(10, 40, 200, 60);
+        CircleButton budget = new CircleButton("🗃️");
+        budget.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        budget.setBounds(30, 30, 40, 40);
+        contentPanel.add(budget);
 
-        budgetl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        budgetl2.setForeground(Color.WHITE);
-        budgetl2.setBounds(30, 40, 200, 60);
-
-        budgetl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        budgetl3.setForeground(Color.WHITE);
-        budgetl3.setBounds(20, 100, 150, 30);
-        contentPanel.add(budgetl1);
-        contentPanel.add(budgetl2);
-        contentPanel.add(budgetl3);
-
-        JLabel remainl3 = new JLabel("Remain");
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         remainl1.setForeground(Color.WHITE);
-        remainl1.setBounds(230, 40, 200, 60);
+        remainl1.setBounds(90, 90, 200, 60);
 
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(findcolor(appContext.getBalance()));
-        remainl2.setBounds(250, 40, 200, 60);
+        remainl2.setBounds(120, 90, 200, 60);
 
-        remainl3.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        JLabel remainl3 = new JLabel("Balance", SwingConstants.CENTER);
+        remainl3.setFont(new Font("Segoe UI", Font.BOLD, 25));
         remainl3.setForeground(Color.WHITE);
-        remainl3.setBounds(285, 100, 150, 30);
+        remainl3.setBounds(100, 150, 150, 30);
         contentPanel.add(remainl1);
         contentPanel.add(remainl2);
         contentPanel.add(remainl3);
 
-        JSeparator line1 = new JSeparator(SwingConstants.HORIZONTAL);
-        line1.setForeground(Color.WHITE);
-        line1.setBounds(0, 100, 122, 5);
-        contentPanel.add(line1);
-
         JSeparator line2 = new JSeparator(SwingConstants.HORIZONTAL);
         line2.setForeground(Color.WHITE);
-        line2.setBounds(240, 100, 150, 5);
+        line2.setBounds(80, 145, 200, 5);
         contentPanel.add(line2);
 
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
@@ -88,6 +69,10 @@ public class Home extends JPanel {
 
         PieChart pieChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
         chartPanel.add(pieChart, BorderLayout.CENTER);
+
+        totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        chartPanel.add(totalSpend, BorderLayout.SOUTH);
+        contentPanel.add(chartPanel);
 
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
@@ -116,10 +101,10 @@ public class Home extends JPanel {
         contentPanel.add(listPanel);
 
         JLabel time = new JLabel();
-        time.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        time.setFont(new Font("Segoe UI", Font.BOLD, 15));
         time.setForeground(new Color(255, 255, 224));
         time.setHorizontalAlignment(SwingConstants.RIGHT);
-        time.setBounds(-25, 150, 300, 40);
+        time.setBounds(45, 0, 300, 40);
         contentPanel.add(time);
 
         javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
@@ -150,6 +135,7 @@ public class Home extends JPanel {
         navBar.add(morebt);
         add(navBar, BorderLayout.SOUTH);
 
+        budget.addActionListener(e -> controller.showPage("Setting"));
         homebt.addActionListener(e -> controller.showPage("Sumpath"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
@@ -160,7 +146,6 @@ public class Home extends JPanel {
                 // รีกับเป็นค่าในGuiห้ตรงกับMem
                 double balanceNow = appContext.getBalance();
                 remainl2.setText(String.format("%,.2f", balanceNow));
-                budgetl2.setText(String.format("%,.2f", balanceNow));
                 double spentNow = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
                 totalSpend.setText("Total Spend: " + String.format("%,.2f", spentNow));
                 remainl2.setForeground(findcolor(balanceNow));

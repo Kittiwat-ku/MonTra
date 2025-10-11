@@ -1,4 +1,5 @@
-# Default config
-balance=0.00
+#MonTra config
+#Sat Oct 11 18:03:45 ICT 2025
+balance=2001610500.00
 categories=Food,Travel,Education
-last_date=2025-10-10
+last_date=2025-10-11

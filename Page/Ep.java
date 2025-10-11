@@ -46,11 +46,11 @@ public class Ep extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        // กลับหน้า Home
+        // กลับหน้า More
         b1.addActionListener(e -> {
             clear();
             clearError();
-            controller.showPage("Home");
+            controller.showPage("More");
         });
 
         // กด Export

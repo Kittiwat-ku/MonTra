@@ -19,16 +19,16 @@ public class Setting extends JPanel{
         b1.setForeground(Color.WHITE); 
         add(b1);
         
-        JLabel l1 = new JLabel(" Set your Budget "); 
+        JLabel l1 = new JLabel(" Add Income "); 
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l1.setForeground(new Color(255, 255, 224)); 
-        l1.setBounds(55, 90, 400, 50); 
+        l1.setBounds(90, 90, 400, 50); 
         add(l1); 
 
-        JLabel l2 = new JLabel(" Set your Category "); 
+        JLabel l2 = new JLabel(" Remove Income "); 
         l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l2.setForeground(new Color(255, 255, 224)); 
-        l2.setBounds(50, 390, 400, 50); 
+        l2.setBounds(55, 390, 400, 50); 
         add(l2); 
 
         int cardW = 220, cardH = 220, radius = 30;
@@ -38,13 +38,13 @@ public class Setting extends JPanel{
         budget.setBounds(75, 150,  cardW, cardH);
         add(budget);
 
-        JButton cat = new MenuCardButton("/image/cat.png", imgW, imgH, radius);
-        cat.setBounds(75, 450, cardW, cardH);
-        add(cat);
+        JButton removebudget = new MenuCardButton("/image/spend.png", imgW, imgH, radius);
+        removebudget.setBounds(75, 450, cardW, cardH);
+        add(removebudget);
 
-        b1.addActionListener(e -> controller.showPage("More")); 
+        b1.addActionListener(e -> controller.showPage("Home")); 
         budget.addActionListener(e -> controller.showPage("Budget"));
-        cat.addActionListener(e -> controller.showPage("CategoryPath"));
+        removebudget.addActionListener(e -> controller.showPage("RemoveBud"));
 
     }
     @Override

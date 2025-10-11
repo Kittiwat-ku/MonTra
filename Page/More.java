@@ -19,7 +19,7 @@ public class More extends JPanel {
         b1.setForeground(Color.WHITE); 
         add(b1);
 
-        JLabel l2 = new JLabel(" Setting "); 
+        JLabel l2 = new JLabel(" Category "); 
         l2.setFont(new Font("Segoe UI", Font.BOLD, 30)); 
         l2.setForeground(new Color(255, 255, 224)); 
         l2.setBounds(125, 90, 400, 50); 
@@ -34,7 +34,7 @@ public class More extends JPanel {
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton setbt = new MenuCardButton("/image/set.png", imgW, imgH, radius);
+        JButton setbt = new MenuCardButton("/image/cat.png", imgW, imgH, radius);
         setbt.setBounds(75, 150, cardW, cardH);
         add(setbt);
 
@@ -43,11 +43,11 @@ public class More extends JPanel {
         add(exbt);
 
         // Action
-        setbt.setToolTipText("Setting");
+        setbt.setToolTipText("Category");
         exbt.setToolTipText("Export");
 
         b1.addActionListener(e -> controller.showPage("Home"));
-        setbt.addActionListener(e -> controller.showPage("Setting"));
+        setbt.addActionListener(e -> controller.showPage("CategoryPath"));
         exbt.addActionListener(e -> controller.showPage("Ep"));
     }
 

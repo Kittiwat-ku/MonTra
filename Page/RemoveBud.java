@@ -12,12 +12,12 @@ import Controller.AppController;
 
 import Service.AppContext;
 
-public class Budget extends JPanel {
+public class RemoveBud extends JPanel {
 
     JLabel errorLabel;
     LabeledInputCard description;
 
-    public Budget(AppController controller, AppContext appContext) {
+    public RemoveBud(AppController controller, AppContext appContext) {
         setLayout(null);
 
         JButton b1 = new PillButton("← Back");
@@ -65,11 +65,11 @@ public class Budget extends JPanel {
         errorLabel.setBounds(30, 360, 300, 20);
         add(errorLabel);
 
-        description = new LabeledInputCard("Add Income", "Add Your Income");
+        description = new LabeledInputCard("Remove Income", "Remove Your Income");
         description.setBounds(30, 250, 300, 100);
         add(description);
 
-        PillButton b2 = new PillButton(" Comfirm ");
+        PillButton b2 = new PillButton(" Remove ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b2.setBounds(100, 450, 175, 60);
         ((PillButton) b2).setButtonStyle(PillButton.Style.HYBRID);

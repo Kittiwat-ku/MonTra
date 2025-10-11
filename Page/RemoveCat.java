@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.swing.*;
 
+import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
@@ -25,10 +26,11 @@ public class RemoveCat extends JPanel {
     public RemoveCat(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        JButton b1 = new JButton("← Back");
+        JButton b1 = new PillButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b1.setBounds(0, 0, 100, 30);
-        b1.setForeground(Color.BLACK);
+        b1.setBounds(0, 10, 100, 30);
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE);
         add(b1);
 
         c = province_to_combobox(appContext.getCategories());
@@ -43,9 +45,10 @@ public class RemoveCat extends JPanel {
         errorLabel.setBounds(57, 230, 280, 20);
         add(errorLabel);
 
-        JButton b2 = new JButton(" Remove ");
+        PillButton b2 = new PillButton(" Remove ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        b2.setBounds(100, 450, 150, 60);
+        b2.setBounds(100, 450, 175, 60);
+        ((PillButton) b2).setButtonStyle(PillButton.Style.HYBRID);
         b2.setForeground(Color.BLACK);
         add(b2);
 

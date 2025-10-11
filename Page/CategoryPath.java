@@ -18,7 +18,7 @@ public class CategoryPath extends JPanel {
         b1.setForeground(Color.WHITE); 
         add(b1);;
 
-        JLabel l1 = new JLabel(" Set Category ");
+        JLabel l1 = new JLabel(" Add Category ");
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         l1.setForeground(new Color(255, 255, 224));
         l1.setBounds(83, 90, 400, 50);
