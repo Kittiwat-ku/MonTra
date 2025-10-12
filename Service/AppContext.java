@@ -22,6 +22,8 @@ public class AppContext {
     private final StorageService storage;
     private final ConfigManager configManager;
     private final TempExpenseStore tempStore;
+    private final CustomExport customExport;
+
 
     private Config config;
     private final DailyExpense dailyExpense = new DailyExpense();
@@ -35,6 +37,7 @@ public class AppContext {
         this.storage = new StorageService();
         this.configManager = new ConfigManager();
         this.tempStore = new TempExpenseStore(storage);
+        this.customExport = new CustomExport(this.storage);
         this.config = configManager.load();
 
         // โหลด temp วันนี้เข้ามาใน dailyExpense
@@ -171,23 +174,25 @@ public class AppContext {
 
     // Export ข้อมูลเป็นFile CSV 
     public void exportCustom(String filename) throws IOException {
-        if (filename == null || filename.trim().isEmpty()) {
-            throw new IllegalArgumentException("Filename cannot be empty.");
+        if (filename == null) {
+            throw new IllegalArgumentException("filename must not be null");
         }
-        // Check Exception
-        String safe = filename.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
+        String safe = filename.trim();
+        if (safe.isEmpty()) {
+            throw new IllegalArgumentException("filename must not be empty");
+        }
 
+        // ดึงรายการวันนี้จาก Temp
         List<Expense> items = getTodayExpenses();
+        if (items == null || items.isEmpty()) {
+            throw new IllegalStateException("No data to export");
+        }
+
+        // ใช้ยอดคงเหลือปัจจุบันเป็น remaining_end
         double remainingEnd = getBalance();
 
-        // สร้างเนื้อหา CSV จาก CustomExport
-        String content = CustomExport.buildCSV(items, remainingEnd);
-
-        // จัดการ path และเขียนไฟล์สำหรับบันทึกขอมูล
-        Path out = storage.buildExportPath(safe);
-        storage.writeExport(out, content);
-
-        System.out.println("[AppContext] Exported custom CSV to " + out.toAbsolutePath());
+        // ให้ CustomExport จัดรูป + เขียนFlie
+        customExport.exportCSV(items, remainingEnd, safe);
     }
 
     // Listener 

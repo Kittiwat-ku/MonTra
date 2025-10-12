@@ -87,7 +87,7 @@ public class StorageService {
         if (!Files.exists(TEMP_FILE)) {
             FileIO.writeString(TEMP_FILE, "description,category,amount,date\n");
         }
-        return Files.readAllLines(TEMP_FILE, StandardCharsets.UTF_8);
+        return FileIO.readLines(TEMP_FILE);
     }
 
     public void writeTempLines(List<String> lines) throws IOException {
