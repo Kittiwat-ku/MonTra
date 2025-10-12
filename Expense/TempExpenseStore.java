@@ -119,7 +119,7 @@ public class TempExpenseStore {
         // อ่านไฟล์เดิมของเดือน
         List<String> oldLines = storage.readMonthlyLogLines(logDate);
 
-        // ดึง summary เดิม (ถ้ามี)
+        // ดึง summary เดิม (ถ้ามันมี)
         int prevTrans = 0;
         double prevSpent = 0.0;
         for (String line : oldLines) {
@@ -198,7 +198,6 @@ public class TempExpenseStore {
         String finalContent = head.toString() + body.toString();
         storage.writeMonthlyLogAll(logDate, finalContent);
 
-        System.out.println(
-                "[TempExpenseStore] Monthly log updated: " + storage.buildMonthlyLogPath(logDate).toAbsolutePath());
+        System.out.println("[TempExpenseStore] Monthly log updated: " + storage.buildMonthlyLogPath(logDate).toAbsolutePath());
     }
 }

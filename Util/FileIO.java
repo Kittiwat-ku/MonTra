@@ -3,6 +3,7 @@ package Util;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.Collections;
 import java.util.List;
 
 public final class FileIO {
@@ -37,4 +38,33 @@ public final class FileIO {
         ensureParentDir(target);
         Files.write(target, lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+    
+    /**
+     * อ่านไฟล์ทั้งหมดเป็น List<String> (อ่านทีละบรรทัด)
+     * ถ้าไม่มีไฟล์คืน List เปล่า
+     */
+    public static List<String> readLines(Path path) throws IOException {
+        if (path == null) {
+            throw new IllegalArgumentException("Path must not be null");
+        }
+        if (!Files.exists(path)) {
+            return Collections.emptyList();
+        }
+        return Files.readAllLines(path, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * อ่านไฟล์ทั้งหมดเป็น String เดียว
+     * ถ้าไม่มีไฟล์คืน "" (string ว่าง)
+     */
+    public static String readString(Path path) throws IOException {
+        if (path == null) {
+            throw new IllegalArgumentException("Path must not be null");
+        }
+        if (!Files.exists(path)) {
+            return "";
+        }
+        return Files.readString(path, StandardCharsets.UTF_8);
+    }
+    
 }
