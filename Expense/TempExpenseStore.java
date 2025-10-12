@@ -18,15 +18,16 @@ import java.util.List;
  * description,category,amount,date
  * GotoKU,Travel,70,2025-10-10T20:50:45.701211
  * 
- * จบวันก็ รวมยอด summary เดิม + ยอดของวันนี้ -> เขียน summary ใหม่ แล้ว append รายการวันนี้
+ * จบวันก็ รวมยอด summary เดิม + ยอดของวันนี้ -> เขียน summary ใหม่ แล้ว append
+ * รายการวันนี้
  */
 public class TempExpenseStore {
 
     private final StorageService storage;
 
-    /** 
-     * Constructor: เรียก initAll() เพื่อเตรียมโฟลเดอร์/ไฟล์พื้นฐาน 
-     * */
+    /**
+     * Constructor: เรียก initAll() เพื่อเตรียมโฟลเดอร์/ไฟล์พื้นฐาน
+     */
     public TempExpenseStore(StorageService storage) throws IOException {
         if (storage == null) {
             throw new IllegalArgumentException("storage must not be null");
@@ -35,17 +36,17 @@ public class TempExpenseStore {
         this.storage.initAll();
     }
 
-    // จัดการ Temp วันนี้ 
+    // จัดการ Temp วันนี้
     /**
-     *  ล้าง Temp แล้วเขียน header ใหม่ 
-     * */
+     * ล้าง Temp แล้วเขียน header ใหม่
+     */
     public void resetToday() throws IOException {
         storage.clearTempToHeader();
     }
 
-    /** 
-     * อ่านรายการวันนี้จาก Temp (ข้ามบรรทัดหัวตาราง) 
-     * */
+    /**
+     * อ่านรายการวันนี้จาก Temp (ข้ามบรรทัดหัวตาราง)
+     */
     public List<Expense> readToday() throws IOException {
         List<String> lines = storage.readTempLines();
         List<Expense> out = new ArrayList<>();
@@ -76,8 +77,8 @@ public class TempExpenseStore {
     }
 
     /**
-     * เขียนรายการวันนี้ทั้งหมดกลับเข้า Temp (ทับทั้งไฟล์) 
-     * */
+     * เขียนรายการวันนี้ทั้งหมดกลับเข้า Temp (ทับทั้งไฟล์)
+     */
     public void writeAllToday(List<Expense> items) throws IOException {
         List<String> lines = new ArrayList<>();
         lines.add("description,category,amount,date");
@@ -94,12 +95,13 @@ public class TempExpenseStore {
         storage.writeTempLines(lines);
     }
 
-    // อัปเดต Logs รายเดือนเมื่อ "ปิดวัน" 
+    // อัปเดต Logs รายเดือนเมื่อ "ปิดวัน"
     /**
      * เพิ่มรายการของ logDate ลงไฟล์รายเดือน และอัปเดต summary
      * ด้านบนให้เป็นค่าล่าสุดของทั้งเดือน
      * 
-     * @param logDate วันที่ที่จะลง log (เช่น วันที่ของวันก่อนหน้าในช่วง rollover)
+     * @param logDate      วันที่ที่จะลง log (เช่น วันที่ของวันก่อนหน้าในช่วง
+     *                     rollover)
      * @param remainingEnd ยอดคงเหลือปลายวัน (แนวกระเป๋าเงิน)
      */
     public void appendDailyToMonthlyLog(LocalDate logDate, double remainingEnd) throws IOException {
@@ -177,15 +179,13 @@ public class TempExpenseStore {
 
         // สร้าง body ใหม่: header (ถ้ายังไม่มี) + เนื้อหาเดิม + รายการวันนี้
         StringBuilder body = new StringBuilder();
-        if (!hasHeader){
+        if (!hasHeader) {
             body.append("description,category,amount,date").append("\n");
         }
-            
 
-        for (String l : bodyOld){
+        for (String l : bodyOld) {
             body.append(l).append("\n");
         }
-            
 
         for (Expense e : items) {
             body.append(CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getDescription()))).append(",")
@@ -198,6 +198,7 @@ public class TempExpenseStore {
         String finalContent = head.toString() + body.toString();
         storage.writeMonthlyLogAll(logDate, finalContent);
 
-        System.out.println("[TempExpenseStore] Monthly log updated: " + storage.buildMonthlyLogPath(logDate).toAbsolutePath());
+        System.out.println(
+                "[TempExpenseStore] Monthly log updated: " + storage.buildMonthlyLogPath(logDate).toAbsolutePath());
     }
 }

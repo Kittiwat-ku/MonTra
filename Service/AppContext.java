@@ -4,16 +4,19 @@ import Config.Config;
 import Config.ConfigManager;
 import Expense.DailyExpense;
 import Expense.Expense;
+import Expense.MonthlySummary;
 import Expense.TempExpenseStore;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.time.YearMonth;
 
 /**
+ * AppContext
+ * /**
  * เป็นตัวจัดการข้อมูลและสถานะต่างๆ และ
  * มีการเชื่อมกับ Service อืนๆ
  */
@@ -23,7 +26,6 @@ public class AppContext {
     private final ConfigManager configManager;
     private final TempExpenseStore tempStore;
     private final CustomExport customExport;
-
 
     private Config config;
     private final DailyExpense dailyExpense = new DailyExpense();
@@ -36,24 +38,29 @@ public class AppContext {
     public AppContext() throws IOException {
         this.storage = new StorageService();
         this.configManager = new ConfigManager();
+
+        // เตรียมโฟลเดอร์/ไฟล์ให้พร้อมก่อน
+        this.storage.initAll();
+
+        // สร้าง TempExpenseStore หลังจาก storage พร้อมแล้ว
         this.tempStore = new TempExpenseStore(storage);
         this.customExport = new CustomExport(this.storage);
-        this.config = configManager.load();
 
-        // โหลด temp วันนี้เข้ามาใน dailyExpense
+        // โหลด config และ temp
+        this.config = configManager.load();
         dailyExpense.setExpenses(tempStore.readToday());
 
-        // เช็ควันใหม่
+        // ตรวจวันใหม่
         rolloverIfNewDay();
     }
 
     // รายจ่ายวันนี้
-    // คืนค่ารายการรายจ่ายทั้งหมดของวันนี้ 
+    // คืนค่ารายการรายจ่ายทั้งหมดของวันนี้
     public List<Expense> getTodayExpenses() {
         return dailyExpense.getExpenses();
     }
 
-     /**
+    /**
      * เพิ่มรายจ่ายใหม่
      * เพิ่มเข้า DailyExpense
      * บันทึกลง temp ทันที
@@ -88,17 +95,17 @@ public class AppContext {
         }
     }
 
-    public double getSpentToday() {
-        return dailyExpense.getSpent();
-    }
-
-    /**  
+    /**
      * จัดการ rollover วันใหม่
      * -นำรายการ Temp ไปเพิ่มใน log รายเดือน
      * -รีเซ็ต Temp ใหม่
      * -เซฟวันใหม่ลง config
      * -แจ้ง UI ให้ reload
-    */
+     */
+    public double getSpentToday() {
+        return dailyExpense.getSpent();
+    }
+
     public void rolloverIfNewDay() throws IOException {
         LocalDate lastDate = config.getLastDate();
         LocalDate today = LocalDate.now();
@@ -115,16 +122,15 @@ public class AppContext {
     }
 
     // Balance
-
     /**
-     *  คืนค่ายอดคงเหลือปัจจุบัน
+     * คืนค่ายอดคงเหลือปัจจุบัน
      */
     public double getBalance() {
         return config.getBalance();
     }
 
     /**
-     *  เพิ่มรายรับ เข้าBalance
+     * เพิ่มรายรับ เข้าBalance
      */
     public void addIncome(double amount) throws IOException {
         if (amount <= 0)
@@ -133,15 +139,16 @@ public class AppContext {
         configManager.save(config);
         pcs.firePropertyChange("reload", null, null);
     }
+
     /**
      * ลบBalance
+     * 
      * @param amount
      * @throws IOException
      */
-    public void removeIncome(double amount)throws IOException{
-        if (amount <= 0) {
+    public void removeIncome(double amount) throws IOException {
+        if (amount <= 0)
             throw new IllegalArgumentException("amount must be > 0");
-        }
         config.setBalance(config.getBalance() - amount);
         configManager.save(config);
         pcs.firePropertyChange("reload", null, null);
@@ -172,7 +179,59 @@ public class AppContext {
         pcs.firePropertyChange("UpdateCatList", null, null);
     }
 
-    // Export ข้อมูลเป็นFile CSV 
+    /**
+     * ดึงข้อมูล summary ของเดือนที่กำหนด
+     * - อ่านจากไฟล์รายเดือน
+     * - ถ้าเป็นเดือนปัจจุบัน → รวมค่าจาก Temp (TodayTemp.csv) ด้วย
+     * 
+     * @param month เดือนที่ต้องการ เช่น YearMonth.of(2025, 10)
+     * @return MonthlySummary ที่รวมยอดทั้งหมดแล้ว
+     */
+    public MonthlySummary getMonthlySummary(YearMonth month) throws IOException {
+        if (month == null) {
+            throw new IllegalArgumentException("month must not be null");
+        }
+
+        // อ่านไฟล์ log ของเดือนนั้น
+        List<String> lines = storage.readMonthlyLogLines(month.atDay(1));
+
+        int totalTransactions = 0;
+        double totalSpent = 0.0;
+        double remainingEnd = 0.0;
+
+        for (String line : lines) {
+            if (line == null)
+                continue;
+            String t = line.trim();
+            if (t.startsWith("# summary,")) {
+                String[] parts = t.split(",", -1);
+                if (parts.length >= 4) {
+                    totalTransactions += Util.CsvUtils.parseIntOrZero(parts[1]);
+                    totalSpent += Util.CsvUtils.parseDoubleOrZero(parts[2]);
+                    remainingEnd = Util.CsvUtils.parseDoubleOrZero(parts[3]); // ใช้ค่าล่าสุดเป็น remainingEnd
+                }
+            }
+        }
+
+        // ถ้าเป็นเดือนปัจจุบัน ก็ให้รวมค่าจาก Temp เพิ่มด้วย
+        YearMonth current = YearMonth.now();
+        if (month.equals(current)) {
+            List<Expense> todayItems = tempStore.readToday();
+            int todayCount = todayItems.size();
+            double todaySpent = 0.0;
+            for (Expense e : todayItems) {
+                todaySpent += e.getAmount();
+            }
+
+            totalTransactions += todayCount;
+            totalSpent += todaySpent;
+            remainingEnd = getBalance(); // ใช้ balance ปัจจุบันแทน remaining_end ของวันนี้
+        }
+
+        return new MonthlySummary(totalTransactions, totalSpent, remainingEnd);
+    }
+
+    // Export ข้อมูลเป็นFile CSV
     public void exportCustom(String filename) throws IOException {
         if (filename == null) {
             throw new IllegalArgumentException("filename must not be null");
@@ -195,7 +254,6 @@ public class AppContext {
         customExport.exportCSV(items, remainingEnd, safe);
     }
 
-    // Listener 
     public void addListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
     }

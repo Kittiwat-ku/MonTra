@@ -48,6 +48,17 @@ public final class CsvUtils {
             }
         }
     }
+     /** แปลง String เป็น int ถ้า null หรือแปลงไม่ได้ → 0 */
+    public static int parseIntOrZero(String s) {
+        if (s == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
 
     /**
      * แปลงอักษรพิเศษก่อนบันทึกในไฟล์ CSV

@@ -31,24 +31,24 @@ public class Summary extends JPanel{
 
         JLabel TotalSpend = new JLabel("0", SwingConstants.LEFT);
         JLabel Income = new JLabel("0", SwingConstants.LEFT);
-        JLabel Expenses = new JLabel("0", SwingConstants.LEFT);
+        JLabel Save = new JLabel("0", SwingConstants.LEFT);
         JLabel Remain = new JLabel("0", SwingConstants.LEFT);
 
         TotalSpend.setFont(new Font("Times New Roman",Font.PLAIN,16));
-        TotalSpend.setForeground(Color.WHITE);
+        TotalSpend.setForeground(Color.RED);
         TotalSpend.setBounds(120, 476, 200, 30);
         Income.setFont(new Font("Times New Roman",Font.PLAIN,16));
-        Income.setForeground(Color.GREEN);
+        Income.setForeground(Color.YELLOW);
         Income.setBounds(120, 551, 200, 30);
-        Expenses.setFont(new Font("Times New Roman",Font.PLAIN,16));
-        Expenses.setForeground(Color.RED);
-        Expenses.setBounds(120, 626, 200, 30);
+        Save.setFont(new Font("Times New Roman",Font.PLAIN,16));
+        Save.setForeground(Color.GREEN);
+        Save.setBounds(120, 626, 200, 30);
         Remain.setFont(new Font("Times New Roman",Font.PLAIN,16));
         Remain.setForeground(Color.WHITE);
         Remain.setBounds(120, 701, 200, 30);
         add(TotalSpend);
         add(Income);
-        add(Expenses);
+        add(Save);
         add(Remain);
 
         JLabel l1 = new JLabel("Select Month:",SwingConstants.LEFT);
@@ -63,7 +63,7 @@ public class Summary extends JPanel{
         l3.setFont(new Font("Times New Roman",Font.PLAIN,20));
         l3.setForeground(Color.WHITE);
         l3.setBounds(10, 550, 200, 30);
-        JLabel l4 = new JLabel("Expenses:",SwingConstants.LEFT);
+        JLabel l4 = new JLabel("Save:",SwingConstants.LEFT);
         l4.setFont(new Font("Times New Roman",Font.PLAIN,20));
         l4.setForeground(Color.WHITE);
         l4.setBounds(10, 625, 200, 30);

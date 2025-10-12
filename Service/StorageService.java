@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import Expense.MonthlySummary;
+
 /**
  * StorageService
  * ----------------
@@ -128,6 +130,28 @@ public class StorageService {
         Path file = yearDir.resolve(month + ".csv");
         FileIO.ensureParentDir(file);
         return file;
+    }
+
+    public MonthlySummary readMonthlySummary(LocalDate anyDateInMonth) throws IOException {
+        List<String> lines = readMonthlyLogLines(anyDateInMonth);
+        int tx = 0;
+        double spent = 0.0;
+        double rem = 0.0;
+
+        for (String line : lines) {
+            if (line == null) continue;
+            String t = line.trim();
+            if (t.startsWith("# summary,")) {
+                String[] parts = t.split(",", -1);
+                if (parts.length >= 4) {
+                    tx = CsvUtils.parseIntOrZero(parts[1]);
+                    spent = CsvUtils.parseDoubleOrZero(parts[2]);
+                    rem = CsvUtils.parseDoubleOrZero(parts[3]);
+                    return new MonthlySummary(tx, spent, rem);
+                }
+            }
+        }
+        return MonthlySummary.zero();
     }
 
     /** 
