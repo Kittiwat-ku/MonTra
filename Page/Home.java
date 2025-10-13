@@ -1,16 +1,21 @@
 package Page;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
-import java.io.*;
-import javax.swing.*;
-import ButtonDesign.*;
-import Controller.AppController;
-import Service.AppContext;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
+import javax.swing.*;
+
+import ButtonDesign.CircleButton;
+import ButtonDesign.RoundedPanel;
+import Controller.AppController;
+import Expense.Expense;
+import Expense.CategorySlice;
+import Service.AppContext;
 import chart.ModelPieChart;
 import chart.PieChart;
+
+import java.util.List;
 
 public class Home extends JPanel {
     private final AppContext appContext;
@@ -19,70 +24,67 @@ public class Home extends JPanel {
 
     public Home(AppController controller, AppContext appContext) {
         this.appContext = appContext;
+
         setLayout(new BorderLayout());
         setOpaque(false);
+
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
-        JLabel remainl1 = new JLabel("฿");
-        JLabel remainl2 = new JLabel(" ");
+        // ======= HEADER / BALANCE =======
+        CircleButton settingsBtn = new CircleButton("🗃️");
+        settingsBtn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        settingsBtn.setBounds(30, 30, 40, 40);
+        contentPanel.add(settingsBtn);
+
+        JLabel currency = new JLabel("฿");
+        JLabel balanceLabel = new JLabel(" ");
+        JLabel balanceTitle = new JLabel("Balance", SwingConstants.CENTER);
+
+        double balance = appContext.getBalance();
+        balanceLabel.setText(String.format("%,.2f", balance));
+
+        currency.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        currency.setForeground(Color.WHITE);
+        currency.setBounds(90, 90, 200, 60);
+
+        balanceLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        balanceLabel.setForeground(findcolor(balance));
+        balanceLabel.setBounds(120, 90, 200, 60);
+
+        balanceTitle.setFont(new Font("Segoe UI", Font.BOLD, 25));
+        balanceTitle.setForeground(Color.WHITE);
+        balanceTitle.setBounds(100, 150, 150, 30);
+
+        contentPanel.add(currency);
+        contentPanel.add(balanceLabel);
+        contentPanel.add(balanceTitle);
+
+        JSeparator line = new JSeparator(SwingConstants.HORIZONTAL);
+        line.setForeground(Color.WHITE);
+        line.setBounds(80, 145, 200, 5);
+        contentPanel.add(line);
+
+        // ======= PIE CHART (TODAY) =======
         JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
-
-        try {
-            double balance = appContext.getBalance();
-            remainl2.setText(String.format("%,.2f", balance));
-            double spent = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
-            totalSpend.setText("Total Spend: " + String.format("%,.2f", spent));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        CircleButton budget = new CircleButton("🗃️");
-        budget.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
-        budget.setBounds(30, 30, 40, 40);
-        contentPanel.add(budget);
-
-        remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
-        remainl1.setForeground(Color.WHITE);
-        remainl1.setBounds(90, 90, 200, 60);
-
-        remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        remainl2.setForeground(findcolor(appContext.getBalance()));
-        remainl2.setBounds(120, 90, 200, 60);
-
-        JLabel remainl3 = new JLabel("Balance", SwingConstants.CENTER);
-        remainl3.setFont(new Font("Segoe UI", Font.BOLD, 25));
-        remainl3.setForeground(Color.WHITE);
-        remainl3.setBounds(100, 150, 150, 30);
-        contentPanel.add(remainl1);
-        contentPanel.add(remainl2);
-        contentPanel.add(remainl3);
-
-        JSeparator line2 = new JSeparator(SwingConstants.HORIZONTAL);
-        line2.setForeground(Color.WHITE);
-        line2.setBounds(80, 145, 200, 5);
-        contentPanel.add(line2);
+        totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getSpentToday()));
 
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(65, 200, 230, 230);
 
-        PieChart pieChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
+        PieChart pieChart = createPieChartFromContext();
         chartPanel.add(pieChart, BorderLayout.CENTER);
-
-        totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
         contentPanel.add(chartPanel);
 
-        totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        chartPanel.add(totalSpend, BorderLayout.SOUTH);
-        contentPanel.add(chartPanel);
-
-        JLabel list = new JLabel("List:");
-        list.setFont(new Font("Segoe UI", Font.BOLD, 40));
-        list.setForeground(Color.WHITE);
-        list.setBounds(150, 435, 100, 60);
-        contentPanel.add(list);
+        // ======= LIST TODAY =======
+        JLabel listTitle = new JLabel("List:");
+        listTitle.setFont(new Font("Segoe UI", Font.BOLD, 40));
+        listTitle.setForeground(Color.WHITE);
+        listTitle.setBounds(150, 435, 100, 60);
+        contentPanel.add(listTitle);
 
         JPanel listPanel = new JPanel(new BorderLayout());
         JPanel head = new JPanel(new GridLayout(1, 3));
@@ -92,14 +94,20 @@ public class Home extends JPanel {
         JLabel h2 = new JLabel("Type", SwingConstants.CENTER);
         JLabel h3 = new JLabel("Price", SwingConstants.CENTER);
         Font hf = new Font("Segoe UI", Font.BOLD, 16);
-        h1.setFont(hf); h2.setFont(hf); h3.setFont(hf);
-        head.add(h1); head.add(h2); head.add(h3);
+        h1.setFont(hf);
+        h2.setFont(hf);
+        h3.setFont(hf);
+        head.add(h1);
+        head.add(h2);
+        head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
-        scroll = showlist("./File/Temp/TodayTemp.csv");
+
+        scroll = buildListFromContext();
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
 
+        // ======= CLOCK =======
         JLabel time = new JLabel();
         time.setFont(new Font("Segoe UI", Font.BOLD, 15));
         time.setForeground(new Color(255, 255, 224));
@@ -115,6 +123,7 @@ public class Home extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
+        // ======= NAV BAR =======
         JPanel navBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 20));
         navBar.setOpaque(false);
 
@@ -135,27 +144,27 @@ public class Home extends JPanel {
         navBar.add(morebt);
         add(navBar, BorderLayout.SOUTH);
 
-        budget.addActionListener(e -> controller.showPage("Setting"));
+        // ======= ACTIONS =======
+        settingsBtn.addActionListener(e -> controller.showPage("Setting"));
         homebt.addActionListener(e -> controller.showPage("Sumpath"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
 
-        // ฟัง event จาก AppContext
+        //ฟังevent
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
-                // รีกับเป็นค่าในGuiห้ตรงกับMem
-                double balanceNow = appContext.getBalance();
-                remainl2.setText(String.format("%,.2f", balanceNow));
-                double spentNow = appContext.getTodayExpenses().stream().mapToDouble(Expense.Expense::getAmount).sum();
-                totalSpend.setText("Total Spend: " + String.format("%,.2f", spentNow));
-                remainl2.setForeground(findcolor(balanceNow));
+                double b = appContext.getBalance();
+                balanceLabel.setText(String.format("%,.2f", b));
+                balanceLabel.setForeground(findcolor(b));
 
-                // reload list จากไฟล์ temp
-                reloadList(scroll, "./File/Temp/TodayTemp.csv");
+                totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getSpentToday()));
 
-                // reload chart
+                // อัปเดตลิสต์จาก context
+                reloadListFromContext();
+
+                // อัปเดตกราฟจาก context
                 chartPanel.removeAll();
-                PieChart newChart = createPieChartFromFile("./File/Temp/TodayTemp.csv");
+                PieChart newChart = createPieChartFromContext();
                 chartPanel.add(newChart, BorderLayout.CENTER);
                 chartPanel.add(totalSpend, BorderLayout.SOUTH);
                 chartPanel.revalidate();
@@ -164,61 +173,29 @@ public class Home extends JPanel {
         });
     }
 
-    private PieChart createPieChartFromFile(String filePath) {
+    // ======= PieChart: ดึงจาก AppContext  =======
+    private PieChart createPieChartFromContext() {
         PieChart pieChart = new PieChart();
         pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
         pieChart.setOpaque(false);
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine();
-            if (line == null) {
-                pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
-                return pieChart;
-            }
+        List<CategorySlice> slices = appContext.getTodayCategorySlices();
 
-            java.util.Map<String, Double> categorySum = new java.util.LinkedHashMap<>();
-            java.util.Map<String, Color> categoryColor = new java.util.LinkedHashMap<>();
-
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 3) {
-                    String category = parts[1].trim();
-                    double amount = 0.0;
-                    try {
-                        amount = Double.parseDouble(parts[2].trim());
-                    } catch (NumberFormatException ignore) {}
-                    categorySum.put(category, categorySum.getOrDefault(category, 0.0) + amount);
-                    if (!categoryColor.containsKey(category)) {
-                        categoryColor.put(category, generateColorFromName(category));
-                    }
-                }
-            }
-
-            double remaining = appContext.getBalance();
-
-            if (!categorySum.isEmpty()) {
-                for (String cat : categorySum.keySet()) {
-                    double value = categorySum.get(cat);
-                    Color color = categoryColor.getOrDefault(cat, Color.GRAY);
-                    pieChart.addData(new ModelPieChart(cat, value, color));
-                }
-
-                if (remaining > 0) {
-                    pieChart.addData(new ModelPieChart("Remaining", remaining, new Color(70, 130, 180)));
-                } else if (remaining < 0) {
-                    // ใส่ค่าสัมบูรณ์ให้กราฟ
-                    pieChart.addData(new ModelPieChart("Over", Math.abs(remaining), Color.RED));
-                }
-
-            } else {
-                pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (slices == null || slices.isEmpty()) {
             pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+        } else {
+            for (CategorySlice s : slices) {
+                Color color = generateColorFromName(s.getCategory());
+                pieChart.addData(new ModelPieChart(s.getCategory(), s.getAmount(), color));
+            }
         }
 
+        double remaining = appContext.getBalance();
+        if (remaining > 0) {
+            pieChart.addData(new ModelPieChart("Remaining", remaining, new Color(70, 130, 180)));
+        } else if (remaining < 0) {
+            pieChart.addData(new ModelPieChart("Over", Math.abs(remaining), Color.RED));
+        }
         return pieChart;
     }
 
@@ -230,30 +207,23 @@ public class Home extends JPanel {
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
-    // เวอร์ชันใหม่: ใช้ threshold จาก balance (ไม่มี daily budget แล้ว)
+    
     private Color findcolor(double remaining) {
-        if (remaining <= 0) return Color.RED;
-        if (remaining < 500) return Color.YELLOW; // ปรับเกณฑ์ได้ตามที่ต้องการ
+        if (remaining <= 0)
+            return Color.RED;
+        if (remaining < 500)
+            return Color.YELLOW;
         return Color.WHITE;
     }
 
-    private JScrollPane showlist(String filePath) {
-        DefaultListModel<String[]> model = new DefaultListModel<>();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            reader.readLine();
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 3) {
-                    model.addElement(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim()});
-                }
-            }
-        } catch (IOException e) {
-            model.addElement(new String[]{"NO Data", "", ""});
+    // ======= List Today จาก AppContext  =======
+    private JScrollPane buildListFromContext() {
+        DefaultListModel<Expense> model = new DefaultListModel<>();
+        for (Expense e : appContext.getTodayExpenses()) {
+            model.addElement(e);
         }
 
-        JList<String[]> list = new JList<>(model);
+        JList<Expense> list = new JList<>(model);
         list.setFixedCellHeight(40);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setFont(new Font("Segoe UI", Font.PLAIN, 15));
@@ -266,9 +236,9 @@ public class Home extends JPanel {
 
             JPanel infoPanel = new JPanel(new GridLayout(1, 3));
             infoPanel.setOpaque(false);
-            infoPanel.add(new JLabel(value[0], SwingConstants.CENTER));
-            infoPanel.add(new JLabel(value[1], SwingConstants.CENTER));
-            infoPanel.add(new JLabel(value[2], SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value.getDescription(), SwingConstants.CENTER));
+            infoPanel.add(new JLabel(value.getCategory(), SwingConstants.CENTER));
+            infoPanel.add(new JLabel(String.format("%,.2f", value.getAmount()), SwingConstants.CENTER));
             row.add(infoPanel, BorderLayout.CENTER);
 
             if (isSelected) {
@@ -281,8 +251,10 @@ public class Home extends JPanel {
                 row.add(delete, BorderLayout.EAST);
             }
 
-            if (isSelected) row.setBackground(new Color(230, 240, 255));
-            else row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
+            if (isSelected)
+                row.setBackground(new Color(230, 240, 255));
+            else
+                row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
 
             return row;
         });
@@ -292,14 +264,15 @@ public class Home extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int idx = list.locationToIndex(e.getPoint());
-                if (idx < 0) return;
+                if (idx < 0)
+                    return;
 
                 Rectangle bounds = list.getCellBounds(idx, idx);
-                if (bounds == null) return;
+                if (bounds == null)
+                    return;
 
                 int clickX = e.getX();
                 int deleteZoneStartX = bounds.x + bounds.width - DELETE_HITBOX_WIDTH;
-
                 boolean isSelected = (list.getSelectedIndex() == idx);
 
                 if (isSelected && clickX >= deleteZoneStartX) {
@@ -313,18 +286,19 @@ public class Home extends JPanel {
             }
         });
 
-        JScrollPane scroll = new JScrollPane(list);
-        scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        return scroll;
+        JScrollPane sp = new JScrollPane(list);
+        sp.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        sp.getVerticalScrollBar().setUnitIncrement(16);
+        return sp;
     }
 
-    private void reloadList(JScrollPane scroll, String filePath) {
-        JScrollPane newScroll = showlist(filePath);
+    private void reloadListFromContext() {
+        JScrollPane newScroll = buildListFromContext();
         scroll.setViewportView(newScroll.getViewport().getView());
     }
 
+    // ======= BG Gradient =======
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -338,11 +312,11 @@ public class Home extends JPanel {
         Point2D start = new Point2D.Float(0, 0);
         Point2D end = new Point2D.Float(w, h);
 
-        float[] dist = {0.0f, 0.5f, 1.0f};
+        float[] dist = { 0.0f, 0.5f, 1.0f };
         Color[] colors = {
-            new Color(0x4A5C58),
-            new Color(0x0A5C36),
-            new Color(0x1F2C2E)
+                new Color(0x4A5C58),
+                new Color(0x0A5C36),
+                new Color(0x1F2C2E)
         };
 
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
