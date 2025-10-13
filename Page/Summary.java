@@ -29,7 +29,6 @@ public class Summary extends JPanel {
         this.appContext = appContext;
         setLayout(null);
 
-        // Back
         JButton b1 = new PillButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b1.setBounds(0, 10, 100, 30);
@@ -41,47 +40,39 @@ public class Summary extends JPanel {
             controller.showPage("Home");
         });
 
-        // Value labels
         totalSpendLabel = makeValueLabel(Color.RED,   120, 476);
         incomeLabel     = makeValueLabel(Color.YELLOW,120, 551);
         saveLabel       = makeValueLabel(Color.GREEN, 120, 626);
         transactionLabel= makeValueLabel(Color.WHITE, 160, 701);
         add(totalSpendLabel); add(incomeLabel); add(saveLabel); add(transactionLabel);
 
-        // Titles
-        add(makeTitleLabel("Select Month:",65,400));
         add(makeTitleLabel("Total Spend:",10,475));
         add(makeTitleLabel("Income:",10,550));
         add(makeTitleLabel("Save:",10,625));
         add(makeTitleLabel("Transaction:", 10,700));
 
-        // Lines
         add(makeLine(0, 510)); add(makeLine(0, 585));
         add(makeLine(0, 660)); add(makeLine(0, 735));
 
-        // Chart panel
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setBounds(30, 100, 300, 300);
         chartPanel.setLayout(new BorderLayout());
         add(chartPanel);
 
-        // Month & Year selectors
         monthBox = new JComboBox<>();
         for (Month m : Month.values()) monthBox.addItem(m.name());
-        monthBox.setBounds(180, 402, 100, 30);
+        monthBox.setBounds(65, 402, 100, 30);
         add(monthBox);
 
         yearBox = new JComboBox<>();
         int currentYear = java.time.Year.now().getValue();
-        for (int y = currentYear - 3; y <= currentYear + 1; y++) yearBox.addItem(y);
-        yearBox.setBounds(65, 402, 100, 30);
+        for (int y = currentYear - 5; y <= currentYear; y++) yearBox.addItem(y);
+        yearBox.setBounds(180, 402, 100, 30);
         add(yearBox);
 
-        // Setให้ไปเลือกช่องว่าง
         monthBox.setSelectedIndex(-1);
         yearBox.setSelectedIndex(-1);
 
-        // อัปเดตเมื่อเลือกครบทั้งสอง
         ActionListener refreshAction = e -> {
             if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
                 int year = (Integer) yearBox.getSelectedItem();
@@ -93,7 +84,6 @@ public class Summary extends JPanel {
         yearBox.addActionListener(refreshAction);
     }
 
-    // ===== helpers =====
     private JLabel makeValueLabel(Color c, int x, int y) {
         JLabel lbl = new JLabel("0", SwingConstants.LEFT);
         lbl.setFont(new Font("Times New Roman", Font.PLAIN, 16));
@@ -114,7 +104,6 @@ public class Summary extends JPanel {
         return line;
     }
 
-    // ===== core =====
     private void updateSummaryAndChart(int year, Month month) {
         try {
             YearMonth ym = YearMonth.of(year, month);
@@ -165,7 +154,6 @@ public class Summary extends JPanel {
         return Color.getHSBColor(hue, sat, bri);
     }
 
-    // เคลียร์ค่าทั้งหมด + เคลียร์กราฟ + reset combo
     private void clearSummaryDisplay() {
         totalSpendLabel.setText("0");
         incomeLabel.setText("0");
@@ -180,7 +168,6 @@ public class Summary extends JPanel {
         yearBox.setSelectedIndex(-1);
     }
 
-    // ===== background =====
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
