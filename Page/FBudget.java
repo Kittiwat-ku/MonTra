@@ -18,7 +18,7 @@ public class FBudget extends JPanel {
     public FBudget(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        LabeledInputCard description = new LabeledInputCard("Budget", "Set Budget");
+        LabeledInputCard description = new LabeledInputCard("Income", "Set Income");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
