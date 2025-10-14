@@ -42,7 +42,7 @@ public class RemoveCat extends JPanel {
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(57, 230, 280, 20);
+        errorLabel.setBounds(57, 230, 280, 30);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Remove ");
@@ -77,7 +77,7 @@ public class RemoveCat extends JPanel {
                 }
 
                 try {
-                    showPassed("{"+cat + "} has been removed ");
+                    showPassed("[ "+cat + " ] has been removed ");
                     appContext.removeCategory(cat);
                     refreshComboItems(c, appContext);
                     clear();

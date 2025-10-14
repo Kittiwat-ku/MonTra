@@ -33,7 +33,7 @@ public class SetCat extends JPanel {
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 320, 320, 20);
+        errorLabel.setBounds(30, 320, 320, 30);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Comfirm ");
@@ -82,7 +82,7 @@ public class SetCat extends JPanel {
                 try {
                     // All passed
                     appContext.addCategory(trimmed);
-                    showPassed("Category {"+trimmed+"} has been added");
+                    showPassed("[ "+trimmed+" ] has been added");
                     clear();
                 } catch (IOException ex) {
                     ex.printStackTrace();

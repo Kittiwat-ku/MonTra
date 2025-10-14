@@ -33,7 +33,7 @@ public class Add extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
-        description = new LabeledInputCard("Description", "Example: Tinoy, Shabu");
+        description = new LabeledInputCard("Description", "Example: Teenoy, Shabu");
         description.setBounds(30, 200, 300, 100);
         add(description);
 

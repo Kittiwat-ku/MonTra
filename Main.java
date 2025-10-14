@@ -11,7 +11,6 @@ public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private AppController controller;
-
     private AppContext appContext; // แหล่งรวมบริการทั้งหมด
 
     public Main() {
@@ -62,7 +61,7 @@ public class Main extends JFrame {
         mainPanel.add(new RemoveCat(controller, appContext),   "RemoveCat");
         mainPanel.add(new Ep(controller, appContext),          "Ep");
         mainPanel.add(new FBudget(controller, appContext),     "FBudget");
-        mainPanel.add(new RemoveBud(controller, appContext),     "RemoveBud");
+        mainPanel.add(new RemoveBud(controller, appContext),   "RemoveBud");
 
         add(mainPanel);
 
