@@ -166,7 +166,7 @@ public class Home extends JPanel {
         });
     }
 
-    //PieChart ดึงจาก AppContext 
+    // PieChart ดึงจาก AppContext
     private PieChart createPieChartFromContext() {
         PieChart pieChart = new PieChart();
         pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
@@ -193,14 +193,22 @@ public class Home extends JPanel {
     }
 
     private Color generateColorFromName(String name) {
-        int hash = Math.abs(name.hashCode());
-        float hue = (hash % 360) / 360f;
-        float saturation = 0.6f + ((hash % 100) / 500f);
-        float brightness = 0.85f;
+
+        int hash = Math.abs(name.hashCode() * 31 + name.length() * 97);
+        float hue = ((hash % 1000) / 1000f); // กระจาย hue มากขึ้น (0.0–1.0)
+        float saturation = 0.55f + ((hash % 300) / 1000f); // 0.55–0.85
+        float brightness = 0.75f + ((hash % 200) / 1000f); // 0.75–0.95
+
+        // ทำให้สีแตกต่างกันมากขึ้นในแต่ละชื่อ
+        hue = (float) ((hue + Math.sin(hash)) % 1.0);
+
+        // ป้องกัน hue เป็นค่าลบ
+        if (hue < 0)
+            hue += 1.0f;
+
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
-    
     private Color findcolor(double remaining) {
         if (remaining <= 0)
             return Color.RED;
