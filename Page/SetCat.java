@@ -12,10 +12,8 @@ import Controller.AppController;
 import Service.AppContext;
 
 public class SetCat extends JPanel {
-
     LabeledInputCard description;
-
-    private final JLabel errorLabel; // แสดงข้อความผิดพลาดสีแดง
+    private final JLabel errorLabel;
 
     public SetCat(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -84,7 +82,7 @@ public class SetCat extends JPanel {
                 try {
                     // All passed
                     appContext.addCategory(trimmed);
-                    clearError();
+                    showPassed("Category {"+trimmed+"} has been added");
                     clear();
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -99,6 +97,11 @@ public class SetCat extends JPanel {
 
     private void showError(String msg) {
         errorLabel.setText(msg);
+        errorLabel.setForeground(Color.red);
+    }
+    public void showPassed(String msg){
+        errorLabel.setText(msg);
+        errorLabel.setForeground(Color.GREEN);
     }
 
     private void clear(){

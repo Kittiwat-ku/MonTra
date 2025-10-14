@@ -12,7 +12,6 @@ import Controller.AppController;
 import Service.AppContext;
 
 public class Add extends JPanel {
-
     JLabel errorLabel;
     LabeledInputCard description;
     LabeledInputCard amount;
@@ -44,7 +43,7 @@ public class Add extends JPanel {
 
         c = province_to_combobox(appContext.getCategories());
         c.setBounds(57, 500, 250, 50);
-        // ให้เริ่มต้น "ไม่เลือกอะไร" เพื่อให้ตรวจ null ได้จริง
+        // ให้เริ่มต้นไม่เลือกอะไรเพื่อให้ตรวจ null ได้จริง
         c.setSelectedIndex(-1);
         add(c);
 
@@ -55,7 +54,7 @@ public class Add extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        // ----- error label -----
+        // error 
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
@@ -71,60 +70,70 @@ public class Add extends JPanel {
                 clearError();
                 controller.showPage("Home");
             }
-            
+
         });
 
         b2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // ดึงค่าและเตรียมใช้งาน
                 String rawAmount = amount.getText();
-                String rawDesc   = description.getText();
+                String rawDesc = description.getText();
 
-                if (rawAmount == null) rawAmount = "";
-                if (rawDesc == null) rawDesc = "";
+                if (rawAmount == null)
+                    rawAmount = "";
+                if (rawDesc == null)
+                    rawDesc = "";
 
+                // ไม่อนุญาต comma ใน description (กันปัญหา CSV)
+                // strip comma ใน amount สำหรับรูปแบบ 1,000
+                rawDesc = rawDesc.trim();
                 rawAmount = rawAmount.replace(",", "").trim();
-                rawDesc   = rawDesc.replace(",", "").trim();
 
-                if (rawAmount.isEmpty() || rawDesc.isEmpty()) {
-                    showError("Input cannot be empty");
+                if (rawDesc.isEmpty()) {
+                    showError("Description cannot be empty.");
+                    return;
+                }
+                if (rawDesc.contains(",")) {
+                    showError("Description cannot contain a comma (,).");
                     return;
                 }
 
-                //  check category จาก JComboBox: ถ้าไม่เลือก = null
+                if (rawAmount.isEmpty()) {
+                    showError("Amount cannot be empty.");
+                    return;
+                }
+
+                // ตรวจ category จาก JComboBox ถ้าไม่เลือก = null
                 Object selected = c.getSelectedItem();
-                if (selected == null) {
-                    showError("Input cannot be null");
+                if (selected == null || selected.toString().trim().isEmpty()){
+                    showError("Please select a category.");
                     return;
                 }
                 String category = selected.toString().trim();
-                if (category.isEmpty()) {
-                    showError("Input cannot be null");
+
+                // แปลงเป็นตัวเลขและตรวจค่ามากกว่า 0
+                final double num;
+                try {
+                    num = Double.parseDouble(rawAmount);
+                } catch (NumberFormatException ex) {
+                    showError("Amount must be a valid number");
+                    return;
+                }
+                if (num <= 0) {
+                    showError("Amount must be greater than 0.");
                     return;
                 }
 
+                // ผ่านทั้งหมด ก็ให้บันทึก 
                 try {
-                    double num = Double.parseDouble(rawAmount);
-                    if (num <= 0) {
-                        showError("Amount Cannot be 0 and negative");
-                        return;
-                    }
-
-                    // ok
                     appContext.addExpense(rawDesc, num, category);
                     clearError();
-
-                    // clear
                     clear();
-
                     controller.showPage("Home");
-
-                } catch (NumberFormatException ex) {
-                    showError("Input must be all number");
-                } catch (NullPointerException ex) {
-                    showError("Input cannot be null");
                 } catch (Exception ex) {
-                    showError("Other error");
+                    // กรณีผิดพลาดจากชั้น service/storage
+                    showError("Unable to add transaction. Please try again.");
                     ex.printStackTrace();
                 }
             }
@@ -141,7 +150,8 @@ public class Add extends JPanel {
             }
         });
     }
-    private void clear(){
+
+    private void clear() {
         description.setText("");
         amount.setText("");
         c.setSelectedIndex(-1);
@@ -151,7 +161,7 @@ public class Add extends JPanel {
         errorLabel.setText("");
     }
 
-    private void showError(String msg) {
+    private void showError(String msg) { 
         errorLabel.setText(msg);
     }
 
@@ -163,7 +173,7 @@ public class Add extends JPanel {
         return tmp;
     }
 
-    // Background Color
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

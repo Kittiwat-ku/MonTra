@@ -42,7 +42,6 @@ public class More extends JPanel {
         exbt.setBounds(75, 450, cardW, cardH);
         add(exbt);
 
-        // Action
         setbt.setToolTipText("Category");
         exbt.setToolTipText("Export");
 

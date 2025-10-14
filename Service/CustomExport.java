@@ -47,7 +47,7 @@ public class CustomExport {
             safeName += ".csv";
         }
 
-        // สร้างเนื้อหา CSV
+        // สร้างไฟล์ CSV
         String content = buildCSV(items, remainingEnd);
 
         //ใช้ StorageService สร้าง path และเขียนไฟล์
@@ -75,11 +75,7 @@ public class CustomExport {
           .append(CsvUtils.fmt2(totalSpent)).append(",")
           .append(CsvUtils.fmt2(remainingEnd)).append("\n");
         sb.append("# summary,transactions,total_spent,remaining_end").append("\n");
-
-        // Header
         sb.append("description,category,amount,date").append("\n");
-
-        // Rows
         for (Expense e : items) {
             sb.append(CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getDescription()))).append(",")
               .append(CsvUtils.escapeCsv(CsvUtils.trimOrEmpty(e.getCategory()))).append(",")

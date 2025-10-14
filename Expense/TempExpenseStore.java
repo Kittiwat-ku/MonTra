@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TempExpenseStore
- * -----------------
  * จัดการไฟล์ Temp (รายการวันนี้) และการอัปเดต Logs รายเดือน
  * รูปแบบไฟล์รายเดือน:
  * # summary,<transactions>,<total_spent>,<remaining_end>
@@ -45,7 +43,7 @@ public class TempExpenseStore {
     }
 
     /**
-     * อ่านรายการวันนี้จาก Temp (ข้ามบรรทัดหัวตาราง)
+     * อ่านรายการวันนี้จาก Temp โดยที่จะข้ามบรรทัดแรกที่เป็น header 
      */
     public List<Expense> readToday() throws IOException {
         List<String> lines = storage.readTempLines();
@@ -54,7 +52,7 @@ public class TempExpenseStore {
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
-            if (i == 0) { // header
+            if (i == 0) {
                 i++;
                 continue;
             }
@@ -77,7 +75,7 @@ public class TempExpenseStore {
     }
 
     /**
-     * เขียนรายการวันนี้ทั้งหมดกลับเข้า Temp (ทับทั้งไฟล์)
+     * เขียนรายการของวันนี้ทั้งหมดลง Temp โดยที่เขียนทับทั้งไฟล์
      */
     public void writeAllToday(List<Expense> items) throws IOException {
         List<String> lines = new ArrayList<>();
@@ -95,14 +93,13 @@ public class TempExpenseStore {
         storage.writeTempLines(lines);
     }
 
-    // อัปเดต Logs รายเดือนเมื่อ "ปิดวัน"
+    // อัปเดต Logs รายเดือนเมื่อจบวัน
     /**
      * เพิ่มรายการของ logDate ลงไฟล์รายเดือน และอัปเดต summary
      * ด้านบนให้เป็นค่าล่าสุดของทั้งเดือน
      * 
-     * @param logDate      วันที่ที่จะลง log (เช่น วันที่ของวันก่อนหน้าในช่วง
-     *                     rollover)
-     * @param remainingEnd ยอดคงเหลือปลายวัน (แนวกระเป๋าเงิน)
+     * @param logDate      วันที่ที่จะบันทึกลง log เช่น วันที่ของวันก่อนหน้าในช่วงrollover       
+     * @param remainingEnd ยอดเงินคงเหลือปลายวัน (แนวกระเป๋าเงิน)
      */
     public void appendDailyToMonthlyLog(LocalDate logDate, double remainingEnd) throws IOException {
         List<Expense> items = readToday();
@@ -111,7 +108,7 @@ public class TempExpenseStore {
             return;
         }
 
-        // รวมยอดวันนี้
+        // คำนวนยอดรวมวันนี้
         double totalSpentToday = 0.0;
         for (Expense e : items) {
             totalSpentToday += e.getAmount();
@@ -121,7 +118,7 @@ public class TempExpenseStore {
         // อ่านไฟล์เดิมของเดือน
         List<String> oldLines = storage.readMonthlyLogLines(logDate);
 
-        // ดึง summary เดิม (ถ้ามันมี)
+        // ดึง summary เดิม (ถ้ามี)
         int prevTrans = 0;
         double prevSpent = 0.0;
         for (String line : oldLines) {
@@ -143,10 +140,11 @@ public class TempExpenseStore {
             }
         }
 
+        // รวมยอดใหม่
         int newTransTotal = prevTrans + transactionsToday;
         double newSpentTotal = prevSpent + totalSpentToday;
 
-        // เขียนหัว summary ใหม่ (ทับของเดิม)
+        // สร้าง summary ใหม่ และจะอยู่บนสุดของไฟล์
         StringBuilder head = new StringBuilder();
         head.append("# summary,")
                 .append(newTransTotal).append(",")
@@ -154,7 +152,7 @@ public class TempExpenseStore {
                 .append(CsvUtils.fmt2(remainingEnd)).append("\n")
                 .append("# summary,transactions,total_spent,remaining_end").append("\n");
 
-        // เก็บเนื้อหาเดิมที่ไม่ใช่ summary
+        // เก็บเฉพาะเนื้อหาเดิมที่ไม่ใช่ summary
         List<String> bodyOld = new ArrayList<>();
         for (String line : oldLines) {
             if (line == null) {
@@ -177,7 +175,7 @@ public class TempExpenseStore {
             }
         }
 
-        // สร้าง body ใหม่: header (ถ้ายังไม่มี) + เนื้อหาเดิม + รายการวันนี้
+        // สร้าง body ใหม่ header + เนื้อหาเก่า + รายการวันนี้
         StringBuilder body = new StringBuilder();
         if (!hasHeader) {
             body.append("description,category,amount,date").append("\n");
@@ -194,7 +192,7 @@ public class TempExpenseStore {
                     .append(CsvUtils.trimOrEmpty(e.getDate())).append("\n");
         }
 
-        // เขียนทับทั้งไฟล์: summary ใหม่ + body ใหม่
+        // รวมทั้งหมดและเขียนทับไฟล์รายเดือน
         String finalContent = head.toString() + body.toString();
         storage.writeMonthlyLogAll(logDate, finalContent);
 

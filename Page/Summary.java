@@ -20,10 +20,12 @@ import chart.PieChart;
 public class Summary extends JPanel {
     private final AppContext appContext;
     private RoundedPanel chartPanel;
-
     private JComboBox<String> monthBox;
     private JComboBox<Integer> yearBox;
     private JLabel totalSpendLabel, incomeLabel, saveLabel, transactionLabel;
+
+    // ใช้กัน ActionEvent ไม่ให้ยิงตอนกำลังเติมรายการเดือน
+    private boolean suppressMonthEvents = false;
 
     public Summary(AppController controller, AppContext appContext) {
         this.appContext = appContext;
@@ -64,52 +66,105 @@ public class Summary extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         add(chartPanel);
 
-        // Month ComboBox
+        // Month / Year
         monthBox = new JComboBox<>();
-        for (Month m : Month.values())
-            monthBox.addItem(m.name());
-        monthBox.setBounds(65, 402, 100, 30);
+        monthBox.setBounds(180, 402, 100, 30);
         add(monthBox);
 
-        // Year ComboBox ดึงจากโฟลเดอร์จริง
         yearBox = new JComboBox<>();
         populateYearsFromStorage();
-        yearBox.setBounds(180, 402, 100, 30);
+        yearBox.setBounds(65, 402, 100, 30);
         add(yearBox);
 
+        // เริ่มต้นให้ว่าง
         monthBox.setSelectedIndex(-1);
         yearBox.setSelectedIndex(-1);
 
-        ActionListener refreshAction = e -> {
-            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
-                int year = (Integer) yearBox.getSelectedItem();
-                Month m = Month.valueOf((String) monthBox.getSelectedItem());
-                updateSummaryAndChart(year, m);
+        // เมื่อเลือกปี ให้ เติมเดือน (แต่ยังไม่สรุปจนกว่าจะเลือกเดือนด้วย)
+        yearBox.addActionListener(e -> {
+            if (yearBox.getSelectedIndex() != -1) {
+                Integer year = (Integer) yearBox.getSelectedItem();
+                populateMonthsFromStorage(year);
+                // บังคับให้ว่างหลังเติม เพื่อรอผู้ใช้เลือกเอง
+                monthBox.setSelectedIndex(-1);
+            } else {
+                suppressMonthEvents = true;
+                try {
+                    monthBox.removeAllItems();
+                    monthBox.setSelectedIndex(-1);
+                } finally {
+                    suppressMonthEvents = false;
+                }
             }
-        };
-        monthBox.addActionListener(refreshAction);
-        yearBox.addActionListener(refreshAction);
+        });
+
+        // เมื่อเลือกเดือน กับ ปี ครบ ให้แสดงสรุป
+        monthBox.addActionListener(e -> {
+            if (suppressMonthEvents) {
+                return; // กำลังเติมค่าอยู่ ไม่ต้องรีเฟรช
+            }
+
+            if (yearBox.getSelectedIndex() == -1) {
+                return; // ยังไม่ได้เลือกปี
+            }
+
+            if (monthBox.getSelectedIndex() == -1) {
+                return; // ยังไม่ได้เลือกเดือน
+            }
+            int year = (Integer) yearBox.getSelectedItem();
+            Month m = Month.valueOf((String) monthBox.getSelectedItem());
+            updateSummaryAndChart(year, m);
+        });
     }
 
+    // เติมรายชื่อปีจากโฟลเดอร์ Logs (ถ้าไม่มีให้fallback เป็นปีปัจจุบัน)
     private void populateYearsFromStorage() {
         yearBox.removeAllItems();
         try {
-            // ดึงรายชื่อปีที่มีอยู่ใน Logs จริง
             List<Integer> years = appContext.getStorage().listExistingLogYears();
-
-            // ถ้ายังไม่มีโฟลเดอร์ Logs/2025 (เช่นเปิดครั้งแรก)
-            // ให้ fallback เป็นปีปัจจุบัน เพื่อให้เลือกได้ตั้งแต่เริ่มใช้งาน
             if (years == null || years.isEmpty()) {
                 years = java.util.List.of(java.time.Year.now().getValue());
             }
-
-            for (Integer y : years) {
+            for (Integer y : years)
                 yearBox.addItem(y);
-            }
         } catch (Exception e) {
-            // ถ้าอ่านไม่ได้ ให้ fallback เป็นปีปัจจุบันเช่นกัน
             yearBox.addItem(java.time.Year.now().getValue());
             System.err.println("Failed to load log years: " + e.getMessage());
+        }
+    }
+
+    // เติมรายชื่อเดือนตามไฟล์ที่มี (ถ้าไม่มีให้ fallback เป็นเดือนปัจจุบัน)
+    private void populateMonthsFromStorage(int year) {
+        suppressMonthEvents = true; // กัน ActionEvent เด้งตอนเติม
+        try {
+            monthBox.removeAllItems();
+            monthBox.setSelectedIndex(-1);
+
+            List<Integer> months = appContext.getStorage().listExistingMonths(year);
+
+            if (months == null || months.isEmpty()) {
+                int currentYear = java.time.Year.now().getValue();
+                int currentMonth = java.time.LocalDate.now().getMonthValue();
+                if (year == currentYear) {
+                    monthBox.addItem(java.time.Month.of(currentMonth).name());
+                }
+                return;
+            }
+
+            for (Integer m : months) {
+                Month mm = Month.of(m);
+                monthBox.addItem(mm.name());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load months for year " + year + ": " + e.getMessage());
+            int currentYear = java.time.Year.now().getValue();
+            int currentMonth = java.time.LocalDate.now().getMonthValue();
+            if (year == currentYear) {
+                monthBox.addItem(java.time.Month.of(currentMonth).name());
+            }
+        } finally {
+            // ปล่อย event อีกครั้ง หลังเติมเสร็จ
+            suppressMonthEvents = false;
         }
     }
 
@@ -155,7 +210,6 @@ public class Summary extends JPanel {
             chartPanel.add(chart, BorderLayout.CENTER);
             chartPanel.revalidate();
             chartPanel.repaint();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -166,7 +220,7 @@ public class Summary extends JPanel {
         pie.setChartType(PieChart.PeiChartType.DEFAULT);
         pie.setOpaque(false);
 
-        List<CategorySlice> slices = appContext.getMonthlyCategorySlices(ym);
+        java.util.List<CategorySlice> slices = appContext.getMonthlyCategorySlices(ym);
         if (slices == null || slices.isEmpty()) {
             pie.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
             return pie;
@@ -195,6 +249,9 @@ public class Summary extends JPanel {
         chartPanel.revalidate();
         chartPanel.repaint();
 
+        monthBox.removeAllItems();
+        yearBox.removeAllItems();
+        populateYearsFromStorage();
         monthBox.setSelectedIndex(-1);
         yearBox.setSelectedIndex(-1);
     }

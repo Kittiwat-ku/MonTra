@@ -1,6 +1,6 @@
 package Expense;
 
-/** โครงสร้างข้อมูลสำหรับพายชาร์ต (ชื่อหมวด และยอดรวมที่ใช้ไป) */
+// โครงสร้างข้อมูลสำหรับพายชาร์ต (ชื่อหมวด และยอดรวมที่ใช้ไป)
 public final class CategorySlice {
     private final String category;
     private final double amount;

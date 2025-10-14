@@ -2,9 +2,9 @@ package Expense;
 
 /**
  * สรุปรายเดือน:
- * - transactions    : จำนวนรายการทั้งหมดในเดือน
- * - totalSpent      : ยอดใช้จ่ายรวมในเดือน
- * - remainingEnd    : ยอดคงเหลือ ณ สิ้นเดือน (อ้างอิงตามระบบ balance ปัจจุบัน)
+ * - transactions     จำนวนรายการทั้งหมดในเดือน
+ * - totalSpent       ยอดใช้จ่ายรวมในเดือน
+ * - remainingEnd     ยอดคงเหลือ ณ สิ้นเดือนอิงตาม balance ปัจจุบัน
  *
  * ใช้คู่กับไฟล์ Logs:
  *   # summary,<transactions>,<total_spent>,<remaining_end>
@@ -21,7 +21,7 @@ public final class MonthlySummary {
         this.remainingEnd = remainingEnd;
     }
 
-    /** factory สำหรับค่าว่าง (ยังไม่มีข้อมูลของเดือนนั้น) */
+    //factory สำหรับค่าว่าง (ยังไม่มีข้อมูลของเดือนนั้น)
     public static MonthlySummary zero() {
         return new MonthlySummary(0, 0.0, 0.0);
     }

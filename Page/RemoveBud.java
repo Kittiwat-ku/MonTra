@@ -13,7 +13,6 @@ import Controller.AppController;
 import Service.AppContext;
 
 public class RemoveBud extends JPanel {
-
     JLabel errorLabel;
     LabeledInputCard description;
 
@@ -58,7 +57,7 @@ public class RemoveBud extends JPanel {
         line.setBounds(80, 145, 200, 5);
         add(line);
 
-        // error label
+        // error
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
@@ -96,7 +95,7 @@ public class RemoveBud extends JPanel {
                     raw = "";
                 raw = raw.trim();
 
-                // เผื่อผู้ใช้พิมพ์คอมม่า เว้นวรรค
+                // ตรวจสอบมี , ไหม
                 raw = raw.replace(",", "").trim();
 
                 if (raw.isEmpty()) {
@@ -119,7 +118,6 @@ public class RemoveBud extends JPanel {
                 } catch (NumberFormatException ex) {
                     showError("Input must be number");
                 } catch (Exception ex) {
-                    // other exception
                     showError("Error please try again");
                     ex.printStackTrace();
                 }
@@ -128,7 +126,6 @@ public class RemoveBud extends JPanel {
 
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
-                // รีกับเป็นค่าในGuiห้ตรงกับMem
                 double balanceNow = appContext.getBalance();
                 remainl2.setText(String.format("%,.2f", balanceNow));
                 remainl2.setForeground(findcolor(balanceNow));
@@ -138,7 +135,7 @@ public class RemoveBud extends JPanel {
     }
     private Color findcolor(double remaining) {
         if (remaining <= 0) return Color.RED;
-        if (remaining < 500) return Color.YELLOW; // ปรับเกณฑ์ได้ตามที่ต้องการ
+        if (remaining < 500) return Color.YELLOW; 
         return Color.WHITE;
     }
 

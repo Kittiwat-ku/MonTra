@@ -19,16 +19,13 @@ import java.util.LinkedHashMap;
 import java.util.ArrayList;
 
 /**
- * AppContext
  * เป็นตัวจัดการข้อมูลและสถานะต่างๆ และมีการเชื่อมกับ Service อืนๆ
  */
 public class AppContext {
-
     private final StorageService storage;
     private final ConfigManager configManager;
     private final TempExpenseStore tempStore;
     private final CustomExport customExport;
-
     private Config config;
     private final DailyExpense dailyExpense = new DailyExpense();
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -55,8 +52,8 @@ public class AppContext {
         rolloverIfNewDay();
     }
 
-    // ---------- รายจ่ายวันนี้ ----------
-    /** คืนค่ารายการรายจ่ายทั้งหมดของวันนี้ */
+    // รายจ่ายวันนี้
+    // คืนค่ารายการรายจ่ายทั้งหมดของวันนี้
     public List<Expense> getTodayExpenses() {
         return dailyExpense.getExpenses();
     }
@@ -88,12 +85,12 @@ public class AppContext {
         }
     }
 
-    /** ยอดที่ใช้ไปวันนี้ */
+    // ยอดที่ใช้ไปวันนี้ 
     public double getSpentToday() {
         return dailyExpense.getSpent();
     }
 
-    // ---------- จัดการ rollover วันใหม่ ----------
+    // จัดการ rollover วันใหม่
     /**
      * เปลี่ยนวัน:
      * - นำรายการ Temp ของวันก่อนหน้าไปเพิ่มใน log เดือนนั้น + อัปเดต summary
@@ -115,13 +112,13 @@ public class AppContext {
         }
     }
 
-    // ---------- Balance ----------
-    /** คืนค่ายอดคงเหลือปัจจุบัน */
+    // Balance
+    //คืนค่ายอดคงเหลือปัจจุบัน
     public double getBalance() {
         return config.getBalance();
     }
 
-    /** เพิ่มรายรับ เข้าBalance */
+    //เพิ่มรายรับ เข้าBalance
     public void addIncome(double amount) throws IOException {
         if (amount <= 0)
             throw new IllegalArgumentException("amount must be > 0");
@@ -130,7 +127,7 @@ public class AppContext {
         pcs.firePropertyChange("reload", null, null);
     }
 
-    /** ลบBalance */
+    // ลบBalance
     public void removeIncome(double amount) throws IOException {
         if (amount <= 0)
             throw new IllegalArgumentException("amount must be > 0");
@@ -139,13 +136,13 @@ public class AppContext {
         pcs.firePropertyChange("reload", null, null);
     }
 
-    // ---------- หมวดหมู่ ----------
-    /** รายชื่อหมวดหมู่ */
+    //หมวดหมู่
+    // รายชื่อหมวดหมู่
     public List<String> getCategories() {
         return config.getCategories();
     }
 
-    /** เพิ่มหมวดหมู่ (ห้ามค่าว่าง/มี comma) */
+    // เพิ่มหมวดหมู่ (ห้ามค่าว่าง/มี comma)
     public void addCategory(String cat) throws IOException {
         String trimmed = cat.trim();
         if (trimmed.isEmpty() || trimmed.contains(",")) {
@@ -156,7 +153,7 @@ public class AppContext {
         pcs.firePropertyChange("UpdateCatList", null, null);
     }
 
-    /** ลบหมวดหมู่ */
+    // ลบหมวดหมู่ 
     public void removeCategory(String cat) throws IOException {
         config.removeCategory(cat);
         configManager.save(config);
@@ -164,9 +161,9 @@ public class AppContext {
     }
 
     // Summary รายเดือน (อ่าน log + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
-    // ----------
+    // 
     /**
-     * ดึง summary ของเดือน:
+     * ดึง summary ของเดือนที่เลือก
      * - อ่านจากไฟล์รายเดือน
      * - ถ้าเป็นเดือนปัจจุบัน ก็ให้ รวม TodayTemp เพิ่มเข้าไป
      */
@@ -218,8 +215,7 @@ public class AppContext {
         return storage;
     }
 
-    // ---------- Export ----------
-    /** Export Today ไปที่ ./File/Export/<filename>.csv (เขียนโดย CustomExport) */
+    // Export 
     public void exportCustom(String filename) throws IOException {
         if (filename == null) {
             throw new IllegalArgumentException("filename must not be null");
@@ -239,8 +235,7 @@ public class AppContext {
         customExport.exportCSV(items, remainingEnd, safe);
     }
 
-    // ---------- รวมยอดตามหมวด (วันนี้) ----------
-    /** รวมยอดใช้จ่ายวันนี้ตามหมวดหมู่เป็น Map */
+    //รวมยอดตามหมวดวันนี้
     public Map<String, Double> getTodaySpendByCategory() {
         Map<String, Double> map = new LinkedHashMap<>();
         for (Expense e : getTodayExpenses()) {
@@ -251,7 +246,7 @@ public class AppContext {
         return map;
     }
 
-    /** ลิสต์พร้อมเปอร์เซ็นต์ (เหมาะกับกราฟ) ของ "วันนี้" */
+    // ลิสต์พร้อมเปอร์เซ็นต์ของ "วันนี้"
     public List<CategorySlice> getTodayCategorySlices() {
         Map<String, Double> totals = getTodaySpendByCategory();
         List<CategorySlice> out = new ArrayList<>();
@@ -261,7 +256,7 @@ public class AppContext {
         return out;
     }
 
-    // ---------- รวมยอดตามหมวด (รายเดือน) ----------
+    //รวมยอดตามหมวดรายเดือน
     /**
      * รวมยอดใช้จ่ายรายเดือนตามหมวดหมู่ (อ่าน Logs + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
      */
@@ -280,7 +275,7 @@ public class AppContext {
             if (line.isEmpty())
                 continue;
             if (line.startsWith("#"))
-                continue; // ข้าม summary/header
+                continue;
             if (line.equalsIgnoreCase("description,category,amount,date"))
                 continue;
 
@@ -304,17 +299,31 @@ public class AppContext {
         return totals;
     }
 
-    /** เวอร์ชันพร้อมเปอร์เซ็นต์ (เหมาะกับกราฟ) ของ "รายเดือน" */
+    // เวอร์ชันพร้อมเปอร์เซ็นต์ของรายเดือน
     public List<CategorySlice> getMonthlyCategorySlices(YearMonth month) throws IOException {
-        Map<String, Double> totals = getMonthlySpendByCategory(month);
+        Map<String, Double> totals;
+        try {
+            totals = getMonthlySpendByCategory(month);
+        } catch (Exception e) {
+            System.err.println("Error reading monthly category data: " + e.getMessage());
+            totals = new LinkedHashMap<>();
+        }
+
+        double totalSpent = 0.0;
+        for (double v : totals.values())
+            totalSpent += v;
+
         List<CategorySlice> out = new ArrayList<>();
+        if (totalSpent <= 0.0)
+            return out;
+
         for (Map.Entry<String, Double> e : totals.entrySet()) {
+            double pct = (e.getValue() * 100.0) / totalSpent;
             out.add(new CategorySlice(e.getKey(), e.getValue()));
         }
         return out;
     }
 
-    // ---------- Listener ----------
     public void addListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
     }

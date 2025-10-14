@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.swing.*;
 
 /**
- *  Main Controller
  *  ทำหน้าที่จัดการการเปลี่ยนหน้า ของแอปพลิเคชั่นที่ใช้ cardLayout นี้
  */
 public class AppController {

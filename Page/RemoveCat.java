@@ -35,10 +35,10 @@ public class RemoveCat extends JPanel {
 
         c = province_to_combobox(appContext.getCategories());
         c.setBounds(57, 150, 250, 50);
-        c.setSelectedIndex(-1); // เริ่มต้น: ไม่เลือกอะไร -> getSelectedItem() จะเป็น null
+        c.setSelectedIndex(-1);
         add(c);
 
-        // error label
+        // error
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
@@ -67,7 +67,7 @@ public class RemoveCat extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 Object selected = c.getSelectedItem();
                 if (selected == null) {
-                    showError("Input cannot be null"); // ยังไม่เลือกหมวดหมู่
+                    showError("Input cannot be null");
                     return;
                 }
                 String cat = selected.toString().trim();
@@ -77,9 +77,8 @@ public class RemoveCat extends JPanel {
                 }
 
                 try {
-                    clearError();
+                    showPassed("{"+cat + "} has been removed ");
                     appContext.removeCategory(cat);
-                    //ลบเสร็จรีเสร็จไปitemว่าง
                     refreshComboItems(c, appContext);
                     clear();
                 } catch (IOException ex) {
@@ -110,9 +109,14 @@ public class RemoveCat extends JPanel {
     private void clear(){
         c.setSelectedIndex(-1);
     }
+    public void showPassed(String msg){
+        errorLabel.setText(msg);
+        errorLabel.setForeground(Color.GREEN);
+    }
 
     private void showError(String msg) {
         errorLabel.setText(msg);
+        errorLabel.setForeground(Color.red);
     }
 
     private void clearError() {

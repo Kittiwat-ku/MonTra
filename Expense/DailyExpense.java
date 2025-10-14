@@ -5,7 +5,7 @@ import java.util.List;
 
 public class DailyExpense {
 
-    //เก็บObj Expense ไว้เป็นArrayList
+    //เก็บObject Expense ไว้เป็นArrayList
     private List<Expense> expenses = new ArrayList<>();
 
     /**
@@ -28,7 +28,7 @@ public class DailyExpense {
     }
     /**
      * เพื่มข้อมูลรายจ่ายใส่expenses
-     * @param e obj Expense ข้อมูลของรายการจ่ายนั้น
+     * @param e object Expense ข้อมูลของรายการจ่ายนั้น
      */
     public void addExpense(Expense e) {
         if (e != null) {
@@ -43,10 +43,8 @@ public class DailyExpense {
         if (index >= 0 && index < expenses.size()) {
             expenses.remove(index);
         }
-    }
-    /**
-     * clear รายจ่ายทั้งหมด
-     */
+    } 
+    //clear รายจ่ายทั้งหมด
     public void clear() {
         expenses.clear();
     }

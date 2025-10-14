@@ -12,8 +12,7 @@ import Controller.AppController;
 import Service.AppContext;
 
 public class FBudget extends JPanel {
-
-    private final JLabel errorLabel; // แสดงข้อความผิดพลาดสีแดง
+    private final JLabel errorLabel;
 
     public FBudget(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -22,7 +21,7 @@ public class FBudget extends JPanel {
         description.setBounds(30, 200, 300, 100);
         add(description);
 
-        // ----- error label -----
+        // error
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
@@ -43,7 +42,7 @@ public class FBudget extends JPanel {
                 if (raw == null) raw = "";
                 raw = raw.trim();
 
-                // เผื่อผู้ใช้พิมพ์คอมม่า เว้นวรรค
+                // ตรวจสอบว่ามี , หรือไม่ และลบออก
                 raw = raw.replace(",", "").trim();
 
                 if (raw.isEmpty()) {
@@ -58,7 +57,6 @@ public class FBudget extends JPanel {
                         return;
                     }
 
-                    
                     appContext.addIncome(newBudget);
                     clearError();
                     description.setText("");
@@ -67,7 +65,6 @@ public class FBudget extends JPanel {
                 } catch (NumberFormatException ex) {
                     showError("Input must be all number");
                 } catch (Exception ex) {
-                    // other exception
                     showError("Error please try again");
                     ex.printStackTrace();
                 }

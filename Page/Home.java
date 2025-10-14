@@ -31,7 +31,6 @@ public class Home extends JPanel {
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
-        // ======= HEADER / BALANCE =======
         CircleButton settingsBtn = new CircleButton("🗃️");
         settingsBtn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
         settingsBtn.setBounds(30, 30, 40, 40);
@@ -65,7 +64,6 @@ public class Home extends JPanel {
         line.setBounds(80, 145, 200, 5);
         contentPanel.add(line);
 
-        // ======= PIE CHART (TODAY) =======
         JLabel totalSpend = new JLabel("Total Spend: 0 ", SwingConstants.CENTER);
         totalSpend.setFont(new Font("Segoe UI", Font.BOLD, 14));
         totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getSpentToday()));
@@ -79,7 +77,6 @@ public class Home extends JPanel {
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
         contentPanel.add(chartPanel);
 
-        // ======= LIST TODAY =======
         JLabel listTitle = new JLabel("List:");
         listTitle.setFont(new Font("Segoe UI", Font.BOLD, 40));
         listTitle.setForeground(Color.WHITE);
@@ -107,7 +104,6 @@ public class Home extends JPanel {
         listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
 
-        // ======= CLOCK =======
         JLabel time = new JLabel();
         time.setFont(new Font("Segoe UI", Font.BOLD, 15));
         time.setForeground(new Color(255, 255, 224));
@@ -123,7 +119,6 @@ public class Home extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // ======= NAV BAR =======
         JPanel navBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 20));
         navBar.setOpaque(false);
 
@@ -144,13 +139,11 @@ public class Home extends JPanel {
         navBar.add(morebt);
         add(navBar, BorderLayout.SOUTH);
 
-        // ======= ACTIONS =======
         settingsBtn.addActionListener(e -> controller.showPage("Setting"));
-        homebt.addActionListener(e -> controller.showPage("Sumpath"));
+        homebt.addActionListener(e -> controller.showPage("Summary"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
-
-        //ฟังevent
+        // listener จาก context
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
                 double b = appContext.getBalance();
@@ -173,7 +166,7 @@ public class Home extends JPanel {
         });
     }
 
-    // ======= PieChart: ดึงจาก AppContext  =======
+    //PieChart ดึงจาก AppContext 
     private PieChart createPieChartFromContext() {
         PieChart pieChart = new PieChart();
         pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
@@ -216,7 +209,6 @@ public class Home extends JPanel {
         return Color.WHITE;
     }
 
-    // ======= List Today จาก AppContext  =======
     private JScrollPane buildListFromContext() {
         DefaultListModel<Expense> model = new DefaultListModel<>();
         for (Expense e : appContext.getTodayExpenses()) {
@@ -298,7 +290,6 @@ public class Home extends JPanel {
         scroll.setViewportView(newScroll.getViewport().getView());
     }
 
-    // ======= BG Gradient =======
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

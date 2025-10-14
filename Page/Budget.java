@@ -13,7 +13,6 @@ import Controller.AppController;
 import Service.AppContext;
 
 public class Budget extends JPanel {
-
     JLabel errorLabel;
     LabeledInputCard description;
 
@@ -58,7 +57,7 @@ public class Budget extends JPanel {
         line.setBounds(80, 145, 200, 5);
         add(line);
 
-        // error label
+        // error
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
@@ -76,7 +75,7 @@ public class Budget extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        b1.addActionListener(new ActionListener() {
+        b1.addActionListener(new ActionListener(){
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -87,7 +86,7 @@ public class Budget extends JPanel {
 
         });
 
-        b2.addActionListener(new ActionListener() {
+        b2.addActionListener(new ActionListener(){
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -96,7 +95,7 @@ public class Budget extends JPanel {
                     raw = "";
                 raw = raw.trim();
 
-                // เผื่อผู้ใช้พิมพ์คอมม่า เว้นวรรค
+                // ตรวจคอมม่า และเว้นวรรค
                 raw = raw.replace(",", "").trim();
 
                 if (raw.isEmpty()) {
@@ -116,10 +115,9 @@ public class Budget extends JPanel {
                     clear();
                     controller.showPage("Home");
 
-                } catch (NumberFormatException ex) {
+                } catch (NumberFormatException ex){
                     showError("Input must be number");
-                } catch (Exception ex) {
-                    // other exception
+                } catch (Exception ex){
                     showError("Error please try again");
                     ex.printStackTrace();
                 }
@@ -128,7 +126,7 @@ public class Budget extends JPanel {
 
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
-                // รีกับเป็นค่าในGuiห้ตรงกับMem
+                // รีกับเป็นค่าในGuiให้ตรงกับMem
                 double balanceNow = appContext.getBalance();
                 remainl2.setText(String.format("%,.2f", balanceNow));
                 remainl2.setForeground(findcolor(balanceNow));
@@ -138,7 +136,7 @@ public class Budget extends JPanel {
     }
     private Color findcolor(double remaining) {
         if (remaining <= 0) return Color.RED;
-        if (remaining < 500) return Color.YELLOW; // ปรับเกณฑ์ได้ตามที่ต้องการ
+        if (remaining < 500) return Color.YELLOW;
         return Color.WHITE;
     }
 

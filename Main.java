@@ -56,7 +56,7 @@ public class Main extends JFrame {
         mainPanel.add(new Add(controller, appContext),         "Add");
         mainPanel.add(new Setting(controller),                 "Setting");
         mainPanel.add(new Budget(controller, appContext),      "Budget");
-        mainPanel.add(new Summary(controller,appContext),                 "Sumpath");
+        mainPanel.add(new Summary(controller,appContext),      "Summary");
         mainPanel.add(new CategoryPath(controller),            "CategoryPath");
         mainPanel.add(new SetCat(controller, appContext),      "SetCat");
         mainPanel.add(new RemoveCat(controller, appContext),   "RemoveCat");
