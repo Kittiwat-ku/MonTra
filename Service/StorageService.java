@@ -21,7 +21,7 @@ import Expense.MonthlySummary;
  * - เตรียมFolder (initAll)
  * - อ่าน/เขียน config.txt
  * - อ่าน/เขียน TodayTemp.csv
- * - อ่าน/เขียนไฟล์ Log รายเดือน (Logs/ํYear/number of month.csv)
+ * - อ่าน/เขียนไฟล์ Log รายเดือน (Logs/<Year>/<MM>.csv)
  * - สร้าง path และเขียนไฟล์ Export (./File/Export/<filename>.csv)
  */
 public class StorageService {
@@ -37,7 +37,7 @@ public class StorageService {
     private final Path CONFIG_FILE = CONFIG_DIR.resolve("config.txt");
     private final Path TEMP_FILE   = TEMP_DIR.resolve("TodayTemp.csv");
 
-    // เตรียมFolder กับFile Config และ Temp
+    // ---------- เตรียมโครงสร้างพื้นฐาน ----------
     public void initAll() throws IOException {
         createDirIfNotExists(ROOT_DIR);
         createDirIfNotExists(CONFIG_DIR);
@@ -64,7 +64,7 @@ public class StorageService {
         }
     }
 
-    // Config
+    // ---------- Config ----------
     public Properties loadConfig() throws IOException {
         if (!Files.exists(CONFIG_FILE)) {
             initAll();
@@ -80,7 +80,7 @@ public class StorageService {
         return CONFIG_FILE;
     }
 
-    // TodayTemp
+    // ---------- TodayTemp ----------
     public Path getTempFile() {
         return TEMP_FILE;
     }
@@ -105,17 +105,13 @@ public class StorageService {
 
     public boolean isTempEmpty() throws IOException {
         List<String> lines = readTempLines();
-        if (lines.size() <= 1) {
-            return true;
-        } else {
-            return false;
-        }
+        return lines.size() <= 1;
     }
 
-    // Monthly Logs
+    // ---------- Monthly Logs (เวอร์ชันปกติ: อาจสร้างโฟลเดอร์ถ้ายังไม่มี) ----------
     /**
-     * @return ที่อยู่ไฟล์รายเดือน: (Logs/ํYear/number of month.csv).csv  ex: Logs/2025/1.csv
-     * 
+     * @return พาธไฟล์รายเดือน: Logs/<YEAR>/<MM>.csv   เช่น Logs/2025/01.csv
+     * (เมธอดนี้ "สร้าง" โฟลเดอร์ปีถ้ายังไม่มี)
      */
     public Path buildMonthlyLogPath(LocalDate date) throws IOException {
         if (date == null) {
@@ -154,9 +150,7 @@ public class StorageService {
         return MonthlySummary.zero();
     }
 
-    /** 
-     * อ่านไฟล์ log ของเดือน (ถ้ายังไม่มี จะคืนลิสต์ว่าง) 
-    */
+    /** อ่านไฟล์ log ของเดือน (ถ้าไม่มี ก็ให้ คืนลิสต์ว่าง) */
     public List<String> readMonthlyLogLines(LocalDate date) throws IOException {
         Path file = buildMonthlyLogPath(date);
         if (!Files.exists(file)) {
@@ -165,28 +159,23 @@ public class StorageService {
         return Files.readAllLines(file, StandardCharsets.UTF_8);
     }
 
-    /** 
-     * เขียนข้อมูลทับลง File log ของประจำเดือนทั้งไฟล์
-    */
-    public void writeMonthlyLogAll(LocalDate date, String content) throws IOException {  
+    /** เขียนทับทั้งไฟล์ log ของเดือน */
+    public void writeMonthlyLogAll(LocalDate date, String content) throws IOException {
         if (content == null) {
-           throw new IllegalArgumentException("content must not be null");
+            throw new IllegalArgumentException("content must not be null");
         }
         Path file = buildMonthlyLogPath(date);
         FileIO.writeString(file, content);
     }
 
-    /** 
-     * เขียนต่อท้ายข้อมูลลง File log ของเดือน  
-     * ถ้าไฟล์ยังไม่ถูกสร้างจะสร้าง File ใหม่โดยอัตโนมัติ
-    */
+    /** ต่อท้ายไฟล์ log ของเดือน (สร้างใหม่ถ้ายังไม่มี) */
     public void appendMonthlyLog(LocalDate date, String content) throws IOException {
         if (content == null) {
             throw new IllegalArgumentException("content must not be null");
         }
         Path file = buildMonthlyLogPath(date);
         FileIO.ensureParentDir(file);
-        
+
         Files.writeString(
                 file,
                 content,
@@ -196,11 +185,49 @@ public class StorageService {
         );
     }
 
-    //Export
-    /** 
-     * สร้างPathไฟล์ export: ./File/Export/<filename>.csv 
-     * แล้วก็เช็คด้วยว่าFileมันเติม.csv ด้านหลังยัง ถ้ายังก็เติมให้
-     * */
+    // ---------- Monthly Logs (เวอร์ชัน NoCreate: ไม่สร้างอะไรตอน "อ่าน") ----------
+    /** พาธไฟล์รายเดือนแบบไม่สร้างโฟลเดอร์/ไฟล์ */
+    public Path buildMonthlyLogPathNoCreate(LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("date must not be null");
+        }
+        String year  = String.valueOf(date.getYear());
+        String month = String.format("%02d", date.getMonthValue());
+        return LOGS_DIR.resolve(year).resolve(month + ".csv");
+    }
+
+    /** อ่านไฟล์ log ของเดือนแบบไม่สร้างโฟลเดอร์/ไฟล์ (ไม่มี -> คืนลิสต์ว่าง) */
+    public List<String> readMonthlyLogLinesNoCreate(LocalDate date) throws IOException {
+        Path file = buildMonthlyLogPathNoCreate(date);
+        if (!Files.exists(file)) {
+            return new ArrayList<>();
+        }
+        return Files.readAllLines(file, StandardCharsets.UTF_8);
+    }
+
+    /** รายชื่อ "ปี" ที่มีอยู่จริงใน ./File/Logs (โฟลเดอร์ชื่อเป็นตัวเลขเท่านั้น) */
+    public List<Integer> listExistingLogYears() throws IOException {
+        List<Integer> years = new ArrayList<>();
+        if (!Files.exists(LOGS_DIR)) return years;
+
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(LOGS_DIR)) {
+            for (Path p : ds) {
+                if (Files.isDirectory(p)) {
+                    String name = p.getFileName().toString();
+                    try {
+                        years.add(Integer.parseInt(name));
+                    } catch (NumberFormatException ignore) {
+                        // ข้ามโฟลเดอร์ที่ไม่ใช่ตัวเลขล้วน
+                    }
+                }
+            }
+        }
+        years.sort(Integer::compareTo); // เรียงจากน้อยไปมาก (อยากกลับด้านก็ Collections.reverse)
+        return years;
+    }
+
+    // ---------- Export ----------
+    /** คืนพาธไฟล์ export: ./File/Export/<filename>.csv (ถ้าไม่ลงท้าย .csv จะเติมให้) */
     public Path buildExportPath(String filename) throws IOException {
         if (filename == null) {
             throw new IllegalArgumentException("filename must not be null");
@@ -208,19 +235,16 @@ public class StorageService {
         String trimmed = CsvUtils.trimOrEmpty(filename);
         if (trimmed.isEmpty()) {
             throw new IllegalArgumentException("filename must not be empty");
-        } else {
-            if (!trimmed.toLowerCase().endsWith(".csv")) {
-                trimmed = trimmed + ".csv";
-            }
+        }
+        if (!trimmed.toLowerCase().endsWith(".csv")) {
+            trimmed = trimmed + ".csv";
         }
         Path out = EXPORT_DIR.resolve(trimmed);
         FileIO.ensureParentDir(out);
         return out;
     }
 
-    /** 
-     * เขียนไฟล์ export ตามพาธที่ให้มา
-    */
+    /** เขียนไฟล์ export ตามพาธที่ให้มา */
     public void writeExport(Path target, String content) throws IOException {
         if (target == null) {
             throw new IllegalArgumentException("target path must not be null");
@@ -231,7 +255,7 @@ public class StorageService {
         FileIO.writeString(target, content);
     }
 
-    // Getter method
+    // ---------- Getter ----------
     public Path getLogsDir() {
         return LOGS_DIR;
     }

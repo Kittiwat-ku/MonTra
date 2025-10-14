@@ -1,15 +1,13 @@
 package Expense;
 
-/** โครงสร้างข้อมูลสำหรับพายชาร์ต (ชื่อหมวด, ยอด, เปอร์เซ็นต์) */
+/** โครงสร้างข้อมูลสำหรับพายชาร์ต (ชื่อหมวด และยอดรวมที่ใช้ไป) */
 public final class CategorySlice {
     private final String category;
     private final double amount;
-    private final double percent;
 
-    public CategorySlice(String category, double amount, double percent) {
+    public CategorySlice(String category, double amount) {
         this.category = category;
         this.amount = amount;
-        this.percent = percent;
     }
 
     public String getCategory() {
@@ -20,12 +18,8 @@ public final class CategorySlice {
         return amount;
     }
 
-    public double getPercent() {
-        return percent;
-    }
-
     @Override
     public String toString() {
-        return "CategorySlice{category='" + category + "', amount=" + amount + ", percent=" + percent + "}";
+        return "CategorySlice{category='" + category + "', amount=" + amount + "}";
     }
 }

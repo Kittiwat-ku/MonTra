@@ -62,7 +62,7 @@ public class AppContext {
     }
 
     /**
-     * เพิ่มรายจ่ายใหม่ → เขียน temp → หัก balance → แจ้ง UI reload
+     * เพิ่มรายจ่ายใหม่ -> เขียน temp -> หัก balance -> แจ้ง UI reload
      */
     public void addExpense(String desc, double amount, String category) throws IOException {
         Expense e = new Expense(desc.trim(), category.trim(), amount, java.time.LocalDateTime.now().toString());
@@ -74,7 +74,7 @@ public class AppContext {
     }
 
     /**
-     * ลบข้อมูลตาม index → เขียน temp → คืนเงินกลับ balance → แจ้ง UI reload
+     * ลบข้อมูลตาม index -> เขียน temp -> คืนเงินกลับ balance -> แจ้ง UI reload
      */
     public void removeExpense(int index) throws IOException {
         List<Expense> before = dailyExpense.getExpenses();
@@ -163,19 +163,20 @@ public class AppContext {
         pcs.firePropertyChange("UpdateCatList", null, null);
     }
 
-    // ---------- Summary รายเดือน (อ่าน log + รวม Temp ถ้าเป็นเดือนปัจจุบัน) ----------
+    // Summary รายเดือน (อ่าน log + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
+    // ----------
     /**
      * ดึง summary ของเดือน:
      * - อ่านจากไฟล์รายเดือน
-     * - ถ้าเป็นเดือนปัจจุบัน → รวม TodayTemp เพิ่มเข้าไป
+     * - ถ้าเป็นเดือนปัจจุบัน ก็ให้ รวม TodayTemp เพิ่มเข้าไป
      */
     public MonthlySummary getMonthlySummary(YearMonth month) throws IOException {
         if (month == null) {
             throw new IllegalArgumentException("month must not be null");
         }
 
-        // อ่านไฟล์ log ของเดือนนั้น
-        List<String> lines = storage.readMonthlyLogLines(month.atDay(1));
+        // ใช้เวอร์ชัน NoCreate เพื่อไม่สร้างโฟลเดอร์ใหม่โดยไม่ได้ตั้งใจ
+        List<String> lines = storage.readMonthlyLogLinesNoCreate(month.atDay(1));
 
         int totalTransactions = 0;
         double totalSpent = 0.0;
@@ -190,12 +191,12 @@ public class AppContext {
                 if (parts.length >= 4) {
                     totalTransactions += Util.CsvUtils.parseIntOrZero(parts[1]);
                     totalSpent += Util.CsvUtils.parseDoubleOrZero(parts[2]);
-                    remainingEnd = Util.CsvUtils.parseDoubleOrZero(parts[3]); // ใช้ค่าล่าสุดเป็น remainingEnd
+                    remainingEnd = Util.CsvUtils.parseDoubleOrZero(parts[3]);
                 }
             }
         }
 
-        // ถ้าเป็นเดือนปัจจุบัน ก็ให้รวมค่าจาก Temp เพิ่มด้วย
+        // รวมข้อมูลของเดือนปัจจุบันด้วย TodayTemp
         YearMonth current = YearMonth.now();
         if (month.equals(current)) {
             List<Expense> todayItems = tempStore.readToday();
@@ -207,10 +208,14 @@ public class AppContext {
 
             totalTransactions += todayCount;
             totalSpent += todaySpent;
-            remainingEnd = getBalance(); // ใช้ balance ปัจจุบันแทน remaining_end ของวันนี้
+            remainingEnd = getBalance();
         }
 
         return new MonthlySummary(totalTransactions, totalSpent, remainingEnd);
+    }
+
+    public StorageService getStorage() {
+        return storage;
     }
 
     // ---------- Export ----------
@@ -249,44 +254,45 @@ public class AppContext {
     /** ลิสต์พร้อมเปอร์เซ็นต์ (เหมาะกับกราฟ) ของ "วันนี้" */
     public List<CategorySlice> getTodayCategorySlices() {
         Map<String, Double> totals = getTodaySpendByCategory();
-        double totalSpent = 0.0;
-        for (double v : totals.values()) totalSpent += v;
-
         List<CategorySlice> out = new ArrayList<>();
-        if (totalSpent <= 0.0) return out;
-
         for (Map.Entry<String, Double> e : totals.entrySet()) {
-            double pct = (e.getValue() * 100.0) / totalSpent;
-            out.add(new CategorySlice(e.getKey(), e.getValue(), pct));
+            out.add(new CategorySlice(e.getKey(), e.getValue()));
         }
         return out;
     }
 
     // ---------- รวมยอดตามหมวด (รายเดือน) ----------
-    /** รวมยอดใช้จ่ายรายเดือนตามหมวดหมู่ (อ่าน Logs + รวม Temp ถ้าเป็นเดือนปัจจุบัน) */
+    /**
+     * รวมยอดใช้จ่ายรายเดือนตามหมวดหมู่ (อ่าน Logs + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
+     */
     public Map<String, Double> getMonthlySpendByCategory(YearMonth month) throws IOException {
-        if (month == null) throw new IllegalArgumentException("month must not be null");
+        if (month == null)
+            throw new IllegalArgumentException("month must not be null");
 
         Map<String, Double> totals = new LinkedHashMap<>();
 
-        // 1) อ่านจากไฟล์ log ของเดือนที่เลือก
+        // อ่านจากไฟล์ log ของเดือนที่เลือก
         List<String> lines = storage.readMonthlyLogLines(month.atDay(1));
         for (String raw : lines) {
-            if (raw == null) continue;
+            if (raw == null)
+                continue;
             String line = raw.trim();
-            if (line.isEmpty()) continue;
-            if (line.startsWith("#")) continue; // ข้าม summary/header
-            if (line.equalsIgnoreCase("description,category,amount,date")) continue;
+            if (line.isEmpty())
+                continue;
+            if (line.startsWith("#"))
+                continue; // ข้าม summary/header
+            if (line.equalsIgnoreCase("description,category,amount,date"))
+                continue;
 
             String[] parts = line.split(",", -1);
             if (parts.length >= 3) {
                 String category = Util.CsvUtils.trimOrEmpty(parts[1]);
-                double amount   = Util.CsvUtils.parseDoubleOrZero(parts[2]);
+                double amount = Util.CsvUtils.parseDoubleOrZero(parts[2]);
                 totals.put(category, totals.getOrDefault(category, 0.0) + amount);
             }
         }
 
-        // 2) ถ้าเป็นเดือนปัจจุบัน → รวมรายการของวันนี้เข้าไปด้วย
+        // ถ้าเป็นเดือนปัจจุบัน จะรวมรายการของวันนี้เข้าไปด้วย
         if (YearMonth.now().equals(month)) {
             for (Expense e : getTodayExpenses()) {
                 String cat = e.getCategory() == null ? "" : e.getCategory().trim();
@@ -301,15 +307,9 @@ public class AppContext {
     /** เวอร์ชันพร้อมเปอร์เซ็นต์ (เหมาะกับกราฟ) ของ "รายเดือน" */
     public List<CategorySlice> getMonthlyCategorySlices(YearMonth month) throws IOException {
         Map<String, Double> totals = getMonthlySpendByCategory(month);
-        double totalSpent = 0.0;
-        for (double v : totals.values()) totalSpent += v;
-
         List<CategorySlice> out = new ArrayList<>();
-        if (totalSpent <= 0.0) return out;
-
         for (Map.Entry<String, Double> e : totals.entrySet()) {
-            double pct = (e.getValue() * 100.0) / totalSpent;
-            out.add(new CategorySlice(e.getKey(), e.getValue(), pct));
+            out.add(new CategorySlice(e.getKey(), e.getValue()));
         }
         return out;
     }

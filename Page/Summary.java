@@ -40,33 +40,40 @@ public class Summary extends JPanel {
             controller.showPage("Home");
         });
 
-        totalSpendLabel = makeValueLabel(Color.RED,   120, 476);
-        incomeLabel     = makeValueLabel(Color.YELLOW,120, 551);
-        saveLabel       = makeValueLabel(Color.GREEN, 120, 626);
-        transactionLabel= makeValueLabel(Color.WHITE, 160, 701);
-        add(totalSpendLabel); add(incomeLabel); add(saveLabel); add(transactionLabel);
+        totalSpendLabel = makeValueLabel(Color.RED, 120, 476);
+        incomeLabel = makeValueLabel(Color.YELLOW, 120, 551);
+        saveLabel = makeValueLabel(Color.GREEN, 120, 626);
+        transactionLabel = makeValueLabel(Color.WHITE, 160, 701);
+        add(totalSpendLabel);
+        add(incomeLabel);
+        add(saveLabel);
+        add(transactionLabel);
 
-        add(makeTitleLabel("Total Spend:",10,475));
-        add(makeTitleLabel("Income:",10,550));
-        add(makeTitleLabel("Save:",10,625));
-        add(makeTitleLabel("Transaction:", 10,700));
+        add(makeTitleLabel("Total Spend:", 10, 475));
+        add(makeTitleLabel("Income:", 10, 550));
+        add(makeTitleLabel("Save:", 10, 625));
+        add(makeTitleLabel("Transaction:", 10, 700));
 
-        add(makeLine(0, 510)); add(makeLine(0, 585));
-        add(makeLine(0, 660)); add(makeLine(0, 735));
+        add(makeLine(0, 510));
+        add(makeLine(0, 585));
+        add(makeLine(0, 660));
+        add(makeLine(0, 735));
 
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setBounds(30, 100, 300, 300);
         chartPanel.setLayout(new BorderLayout());
         add(chartPanel);
 
+        // Month ComboBox
         monthBox = new JComboBox<>();
-        for (Month m : Month.values()) monthBox.addItem(m.name());
+        for (Month m : Month.values())
+            monthBox.addItem(m.name());
         monthBox.setBounds(65, 402, 100, 30);
         add(monthBox);
 
+        // Year ComboBox ดึงจากโฟลเดอร์จริง
         yearBox = new JComboBox<>();
-        int currentYear = java.time.Year.now().getValue();
-        for (int y = currentYear - 5; y <= currentYear; y++) yearBox.addItem(y);
+        populateYearsFromStorage();
         yearBox.setBounds(180, 402, 100, 30);
         add(yearBox);
 
@@ -84,6 +91,28 @@ public class Summary extends JPanel {
         yearBox.addActionListener(refreshAction);
     }
 
+    private void populateYearsFromStorage() {
+        yearBox.removeAllItems();
+        try {
+            // ดึงรายชื่อปีที่มีอยู่ใน Logs จริง
+            List<Integer> years = appContext.getStorage().listExistingLogYears();
+
+            // ถ้ายังไม่มีโฟลเดอร์ Logs/2025 (เช่นเปิดครั้งแรก)
+            // ให้ fallback เป็นปีปัจจุบัน เพื่อให้เลือกได้ตั้งแต่เริ่มใช้งาน
+            if (years == null || years.isEmpty()) {
+                years = java.util.List.of(java.time.Year.now().getValue());
+            }
+
+            for (Integer y : years) {
+                yearBox.addItem(y);
+            }
+        } catch (Exception e) {
+            // ถ้าอ่านไม่ได้ ให้ fallback เป็นปีปัจจุบันเช่นกัน
+            yearBox.addItem(java.time.Year.now().getValue());
+            System.err.println("Failed to load log years: " + e.getMessage());
+        }
+    }
+
     private JLabel makeValueLabel(Color c, int x, int y) {
         JLabel lbl = new JLabel("0", SwingConstants.LEFT);
         lbl.setFont(new Font("Times New Roman", Font.PLAIN, 16));
@@ -91,6 +120,7 @@ public class Summary extends JPanel {
         lbl.setBounds(x, y, 200, 30);
         return lbl;
     }
+
     private JLabel makeTitleLabel(String text, int x, int y) {
         JLabel lbl = new JLabel(text, SwingConstants.LEFT);
         lbl.setFont(new Font("Times New Roman", Font.PLAIN, 20));
@@ -98,6 +128,7 @@ public class Summary extends JPanel {
         lbl.setBounds(x, y, 200, 30);
         return lbl;
     }
+
     private JSeparator makeLine(int x, int y) {
         JSeparator line = new JSeparator(SwingConstants.HORIZONTAL);
         line.setBounds(x, y, 300, 5);
@@ -135,12 +166,12 @@ public class Summary extends JPanel {
         pie.setChartType(PieChart.PeiChartType.DEFAULT);
         pie.setOpaque(false);
 
-        java.util.List<Expense.CategorySlice> slices = appContext.getMonthlyCategorySlices(ym);
+        List<CategorySlice> slices = appContext.getMonthlyCategorySlices(ym);
         if (slices == null || slices.isEmpty()) {
-            pie.addData(new chart.ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+            pie.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
             return pie;
         }
-        for (Expense.CategorySlice s : slices) {
+        for (CategorySlice s : slices) {
             pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), colorFromName(s.getCategory())));
         }
         return pie;
@@ -177,8 +208,8 @@ public class Summary extends JPanel {
 
         int w = getWidth(), h = getHeight();
         Point2D start = new Point2D.Float(0, 0);
-        Point2D end   = new Point2D.Float(w, h);
-        float[] dist = {0.0f, 0.5f, 1.0f};
+        Point2D end = new Point2D.Float(w, h);
+        float[] dist = { 0.0f, 0.5f, 1.0f };
         Color[] colors = { new Color(0x4A5C58), new Color(0x0A5C36), new Color(0x1F2C2E) };
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
         g2d.setPaint(lgp);
