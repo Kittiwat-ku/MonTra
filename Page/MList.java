@@ -15,6 +15,8 @@ public class MList extends JPanel {
     private final AppContext appContext;
     private RoundedPanel MListPanel;
     private JScrollPane scroll;
+    private JComboBox<String> monthBox;
+    private JComboBox<Integer> yearBox;
 
     public MList(AppController controller, AppContext appContext) {
         this.appContext = appContext;
@@ -28,7 +30,7 @@ public class MList extends JPanel {
         add(b1);
         b1.addActionListener(e -> controller.showPage("Summary"));
 
-        MListPanel = new RoundedPanel(90, 0, new Color(255, 255, 255), Color.GRAY, 1);
+        MListPanel = new RoundedPanel(30, 30, new Color(255, 255, 255), Color.GRAY, 1);
         MListPanel.setBounds(30, 150, 300, 600);
         MListPanel.setLayout(new BorderLayout());
         add(MListPanel);
@@ -37,7 +39,7 @@ public class MList extends JPanel {
         header.setBackground(new Color(240, 240, 240));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel left = new JLabel("Desc. / Cate. / Time", SwingConstants.CENTER);
+        JLabel left = new JLabel("Description / Category / Time", SwingConstants.CENTER);
         left.setFont(new Font("Segoe UI", Font.BOLD, 14));
         JLabel right = new JLabel("Amount", SwingConstants.CENTER);
         right.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -46,7 +48,7 @@ public class MList extends JPanel {
         header.add(right);
         MListPanel.add(header, BorderLayout.NORTH);
 
-        scroll = MonthlyList();
+        scroll = buildMonthlyList();
         MListPanel.add(scroll, BorderLayout.CENTER);
 
         appContext.addListener(evt -> {
@@ -54,13 +56,21 @@ public class MList extends JPanel {
                 reloadList();
             }
         });
+
+        monthBox = new JComboBox<>();
+        monthBox.setBounds(60, 70, 100, 30);
+        add(monthBox);
+
+        yearBox = new JComboBox<>();
+        yearBox.setBounds(200, 70, 100, 30);
+        add(yearBox);
     }
 
-
-    private JScrollPane MonthlyList() {
+   
+    private JScrollPane buildMonthlyList() {
         DefaultListModel<Expense> model = new DefaultListModel<>();
         try {
-            YearMonth month = YearMonth.now();
+            YearMonth month = YearMonth.now(); 
             for (Expense e : appContext.getMonthlyExpenses(month)) {
                 model.addElement(e);
             }
@@ -116,9 +126,8 @@ public class MList extends JPanel {
         return sp;
     }
 
-
     private void reloadList() {
-        JScrollPane newScroll = MonthlyList();
+        JScrollPane newScroll = buildMonthlyList();
         MListPanel.remove(scroll);
         scroll = newScroll;
         MListPanel.add(scroll, BorderLayout.CENTER);

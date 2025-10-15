@@ -42,6 +42,7 @@ public class Summary extends JPanel {
         ((PillButton) viewList).setButtonStyle(PillButton.Style.OUTLINE);
         viewList.setForeground(Color.WHITE);
         add(viewList);
+        viewList.addActionListener(e -> controller.showPage("MList"));
 
         // label info
         totalSpendLabel = makeValueLabel(Color.RED, 120, 476);
@@ -94,16 +95,6 @@ public class Summary extends JPanel {
             Month m = Month.valueOf((String) monthBox.getSelectedItem());
             updateSummaryAndChart(year, m);
         });
-
-        /*  ไปหน้า MList พร้อมส่งเดือนที่เลือก
-        viewList.addActionListener(e -> {
-            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
-                int year = (Integer) yearBox.getSelectedItem();
-                Month m = Month.valueOf((String) monthBox.getSelectedItem());
-                appContext.setSelectedMonth(YearMonth.of(year, m));
-            }
-            controller.showPage("MList");
-        });*/
     }
 
     private void populateYearsFromStorage() {
