@@ -37,7 +37,10 @@ public class MList extends JPanel {
         ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
         b1.setForeground(Color.WHITE);
         add(b1);
-        b1.addActionListener(e -> controller.showPage("Summary"));
+        b1.addActionListener(e -> {
+            resetSelectorsToUnselected(); // กลับเป็น -1 ทั้งคู่ + เคลียร์รายการ
+            controller.showPage("Summary");
+        });
 
         MListPanel = new RoundedPanel(30, 30, new Color(255, 255, 255), Color.GRAY, 1);
         MListPanel.setBounds(30, 150, 300, 600);
@@ -113,7 +116,7 @@ public class MList extends JPanel {
         yearBox.setBounds(60, 70, 100, 30);
         add(yearBox);
 
-        // เตรียมค่าเริ่มต้นแบบเดียวกับ Summary
+        // ค่าเริ่มต้น: เติม "ปี" (รวมปีปัจจุบันเสมอ) แต่ "ไม่เลือก" อัตโนมัติ
         setupYearMonthSelectors();
 
         appContext.addListener(evt -> {
@@ -123,106 +126,71 @@ public class MList extends JPanel {
         });
     }
 
-    /** เหมือน Summary.java: โหลดปี/เดือนเริ่มต้น พร้อม fallback ปี-เดือนปัจจุบัน */
+    /** โหลดปีเริ่มต้น (รวมปีปัจจุบันเสมอ) แต่ไม่เลือกอะไรเลย; เดือนเริ่มว่างจนกว่าจะเลือกปี */
     private void setupYearMonthSelectors() {
         suppressEvents = true;
-        boolean usedYearFallback = populateYearsFromStorage();
+        populateYearsAlwaysIncludeCurrent();
+        yearBox.setSelectedIndex(-1);   // ไม่เลือกปี
+        monthBox.removeAllItems();      // เดือนเริ่มว่าง
+        monthBox.setSelectedIndex(-1);  // ไม่เลือกเดือน
+        suppressEvents = false;
 
-        if (usedYearFallback) {
-            Integer currentYear = java.time.Year.now().getValue();
-            yearBox.setSelectedItem(currentYear);
-            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
-            if (usedMonthFallback) {
-                Month currentMonth = java.time.LocalDate.now().getMonth();
-                monthBox.setSelectedItem(currentMonth.name());
-                suppressEvents = false;
-                updateMonthlyList(currentYear, currentMonth);
-            } else {
-                monthBox.setSelectedIndex(-1);
-                suppressEvents = false;
-            }
-        } else {
-            monthBox.removeAllItems();
-            yearBox.setSelectedIndex(-1);
-            monthBox.setSelectedIndex(-1);
-            suppressEvents = false;
-        }
-
-        // เมื่อเลือกปี → อัปเดตเดือน
+        // เมื่อเลือกปี → อัปเดตเดือน (ไม่เลือกอัตโนมัติ)
         yearBox.addActionListener(e -> {
-            if (suppressEvents) {
-                return;
-            }
-            if (yearBox.getSelectedIndex() != -1) {
-                Integer year = (Integer) yearBox.getSelectedItem();
-                suppressEvents = true;
-                populateMonthsFromStorage(year);
+            if (suppressEvents) return;
+            Integer y = (Integer) yearBox.getSelectedItem();
+            suppressEvents = true;
+            if (y != null) {
+                populateMonthsAlwaysIncludeCurrent(y);
                 monthBox.setSelectedIndex(-1);
-                suppressEvents = false;
             } else {
-                suppressEvents = true;
                 monthBox.removeAllItems();
                 monthBox.setSelectedIndex(-1);
-                suppressEvents = false;
             }
+            suppressEvents = false;
+            clearListDisplay(); // เคลียร์รายการจนกว่าจะเลือกครบ
         });
 
-        // เมื่อเลือกเดือน + ปีครบ → แสดงรายการรายจ่าย
+        // เมื่อเลือกเดือน + ปีครบ = ให้แสดงรายการรายจ่าย
         monthBox.addActionListener(e -> {
-            if (suppressEvents) {
-                return;
-            }
-            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
-                int year = (Integer) yearBox.getSelectedItem();
-                Month month = Month.valueOf((String) monthBox.getSelectedItem());
-                updateMonthlyList(year, month);
+            if (suppressEvents) return;
+            Integer y = (Integer) yearBox.getSelectedItem();
+            String mText = (String) monthBox.getSelectedItem();
+            if (y != null && mText != null) {
+                updateMonthlyList(y, java.time.Month.valueOf(mText));
+            } else {
+                clearListDisplay();
             }
         });
     }
-
-    private boolean populateYearsFromStorage() {
+    // Helpers
+    // สำหรับ Year/Month ที่ "รวมปัจจุบันเสมอ" 
+    private void populateYearsAlwaysIncludeCurrent() {
         yearBox.removeAllItems();
+        java.util.Set<Integer> years = new java.util.TreeSet<>();
         try {
-            List<Integer> years = appContext.getStorage().listExistingLogYears();
-            if (years == null || years.isEmpty()) {
-                yearBox.addItem(java.time.Year.now().getValue());
-                return true;
-            }
-            for (Integer y : years) {
-                yearBox.addItem(y);
-            }
-            return false;
-        } catch (Exception e) {
-            yearBox.addItem(java.time.Year.now().getValue());
-            return true;
-        }
+            List<Integer> fromStorage = appContext.getStorage().listExistingLogYears();
+            if (fromStorage != null) years.addAll(fromStorage);
+        } catch (Exception ignored) {}
+        years.add(java.time.Year.now().getValue()); // รวมปีปัจจุบันเสมอ
+        for (Integer y : years) yearBox.addItem(y);
     }
 
-    private boolean populateMonthsFromStorage(int year) {
+    private void populateMonthsAlwaysIncludeCurrent(int year) {
         monthBox.removeAllItems();
+        java.util.Set<Integer> months = new java.util.TreeSet<>();
         try {
-            List<Integer> months = appContext.getStorage().listExistingMonths(year);
-            if (months == null || months.isEmpty()) {
-                int currentYear = java.time.Year.now().getValue();
-                int currentMonth = java.time.LocalDate.now().getMonthValue();
-                if (year == currentYear) {
-                    monthBox.addItem(java.time.Month.of(currentMonth).name());
-                    return true;
-                }
-                return false;
-            }
-            for (Integer m : months) {
-                monthBox.addItem(Month.of(m).name());
-            }
-            return false;
-        } catch (Exception e) {
-            int currentYear = java.time.Year.now().getValue();
-            int currentMonth = java.time.LocalDate.now().getMonthValue();
-            if (year == currentYear) {
-                monthBox.addItem(java.time.Month.of(currentMonth).name());
-                return true;
-            }
-            return false;
+            List<Integer> fromStorage = appContext.getStorage().listExistingMonths(year);
+            if (fromStorage != null) months.addAll(fromStorage);
+        } catch (Exception ignored) {}
+
+        java.time.YearMonth now = java.time.YearMonth.now();
+        if (year == now.getYear()) {
+            months.add(now.getMonthValue()); // รวมเดือนปัจจุบันเสมอ
+        }
+
+        for (Integer m : months) {
+            monthBox.addItem(java.time.Month.of(m).name());
         }
     }
 
@@ -250,14 +218,41 @@ public class MList extends JPanel {
             int year = (Integer) yearBox.getSelectedItem();
             Month month = Month.valueOf((String) monthBox.getSelectedItem());
             updateMonthlyList(year, month);
+        } else {
+            clearListDisplay();
         }
+    }
+
+    private void clearListDisplay() {
+        model.clear();
+    }
+
+    /** เคลียร์รายการ + รีเซ็ต combobox เป็น -1; คงรายการปี (รวมปีปัจจุบัน) ไว้ */
+    private void resetSelectorsToUnselected() {
+        suppressEvents = true;
+
+        // รายการ
+        clearListDisplay();
+
+        // ปี: คงรายการเดิมไว้ ถ้ายังไม่มีให้เติม แล้วตั้งไม่เลือก
+        if (yearBox.getItemCount() == 0) {
+            populateYearsAlwaysIncludeCurrent();
+        }
+        yearBox.setSelectedIndex(-1);
+
+        // เดือน: ล้างทิ้งและไม่เลือก
+        monthBox.removeAllItems();
+        monthBox.setSelectedIndex(-1);
+
+        suppressEvents = false;
     }
 
     private String formatDateTime(String raw) {
         try {
             java.time.LocalDateTime dt = java.time.LocalDateTime.parse(raw);
-            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm",
-                    java.util.Locale.ENGLISH);
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern(
+                "dd MMM yyyy, HH:mm", java.util.Locale.ENGLISH
+            );
             return dt.format(fmt);
         } catch (Exception e) {
             return raw; // ถ้า parse ไม่ได้ ก็แสดงตามเดิม

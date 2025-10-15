@@ -38,7 +38,7 @@ public class Summary extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
         b1.addActionListener(e -> {
-            clearSummaryDisplay();
+            resetSelectorsToUnselected(); // กลับเป็น -1 ทั้งคู่
             controller.showPage("Home");
         });
 
@@ -50,7 +50,6 @@ public class Summary extends JPanel {
         viewList.setForeground(Color.WHITE);
         add(viewList);
         viewList.addActionListener(e -> controller.showPage("MList"));
-
 
         // Label แสดงค่า
         totalSpendLabel = makeValueLabel(Color.RED, 120, 476);
@@ -89,106 +88,71 @@ public class Summary extends JPanel {
         yearBox.setBounds(65, 402, 100, 30);
         add(yearBox);
 
-        // เตรียมค่าเริ่มต้น
+        // ค่าเริ่มต้น: เติม "ปี" (รวมปีปัจจุบันเสมอ) แต่ "ไม่เลือก" อัตโนมัติ 
         suppressEvents = true;
-        boolean usedYearFallback = populateYearsFromStorage();
+        populateYearsAlwaysIncludeCurrent();
+        yearBox.setSelectedIndex(-1);   // ไม่เลือกปี
+        monthBox.removeAllItems();      // เดือนเริ่มว่างจนกว่าจะเลือกปี
+        monthBox.setSelectedIndex(-1);  // ไม่เลือกเดือน
+        suppressEvents = false;
 
-        if (usedYearFallback) {
-            Integer currentYear = java.time.Year.now().getValue();
-            yearBox.setSelectedItem(currentYear);
-            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
-            if (usedMonthFallback) {
-                Month currentMonth = java.time.LocalDate.now().getMonth();
-                monthBox.setSelectedItem(currentMonth.name());
-                suppressEvents = false;
-                updateSummaryAndChart(currentYear, currentMonth);
-            } else {
-                monthBox.setSelectedIndex(-1);
-                suppressEvents = false;
-            }
-        } else {
-            monthBox.removeAllItems();
-            yearBox.setSelectedIndex(-1);
-            monthBox.setSelectedIndex(-1);
-            suppressEvents = false;
-        }
-
-        // เมื่อเลือกปีแล้ว ให้อัปเดตรายชื่อเดือน แต่ไม่อัปเดตกราฟ
+        // เมื่อเลือกปีแล้ว ให้อัปเดตรายชื่อเดือน (รวมเดือนปัจจุบันถ้าเป็นปีนี้) แต่ยังไม่เลือก
         yearBox.addActionListener(e -> {
-            if (suppressEvents) {
-                return;
-            }
-            if (yearBox.getSelectedIndex() != -1) {
-                Integer year = (Integer) yearBox.getSelectedItem();
-                suppressEvents = true;
-                populateMonthsFromStorage(year);
-                monthBox.setSelectedIndex(-1); 
-                suppressEvents = false;
+            if (suppressEvents) return;
+            Integer y = (Integer) yearBox.getSelectedItem();
+            suppressEvents = true;
+            if (y != null) {
+                populateMonthsAlwaysIncludeCurrent(y);
+                monthBox.setSelectedIndex(-1); // ไม่เลือกเดือนอัตโนมัติ
             } else {
-                suppressEvents = true;
                 monthBox.removeAllItems();
                 monthBox.setSelectedIndex(-1);
-                suppressEvents = false;
             }
+            suppressEvents = false;
+            clearSummaryDisplay(); // เคลียร์ข้อมูลจนกว่าจะเลือกทั้งปีและเดือน
         });
 
         // เมื่อเลือกเดือน + ปีครบ ให้แสดงสรุป
         monthBox.addActionListener(e2 -> {
-            if (suppressEvents) {
-                return;
-            }
-            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
-                int year = (Integer) yearBox.getSelectedItem();
-                Month m = Month.valueOf((String) monthBox.getSelectedItem());
-                updateSummaryAndChart(year, m);
+            if (suppressEvents) return;
+            Integer y = (Integer) yearBox.getSelectedItem();
+            String mText = (String) monthBox.getSelectedItem();
+            if (y != null && mText != null) {
+                updateSummaryAndChart(y, java.time.Month.valueOf(mText));
+            } else {
+                clearSummaryDisplay();
             }
         });
     }
 
-    private boolean populateYearsFromStorage() {
+    // Helpers สำหรับ Year/Month ที่ "รวมปัจจุบันเสมอ"
+    private void populateYearsAlwaysIncludeCurrent() {
         yearBox.removeAllItems();
+        java.util.Set<Integer> years = new java.util.TreeSet<>();
         try {
-            List<Integer> years = appContext.getStorage().listExistingLogYears();
-            if (years == null || years.isEmpty()) {
-                yearBox.addItem(java.time.Year.now().getValue());
-                return true;
-            }
-            for (Integer y : years) {
-                yearBox.addItem(y);
-            }
-            return false;
-        } catch (Exception e) {
-            yearBox.addItem(java.time.Year.now().getValue());
-            return true;
-        }
+            List<Integer> fromStorage = appContext.getStorage().listExistingLogYears();
+            if (fromStorage != null) years.addAll(fromStorage);
+        } catch (Exception ignored) {}
+        years.add(java.time.Year.now().getValue()); // รวมปีปัจจุบันเสมอ
+
+        for (Integer y : years) yearBox.addItem(y);
     }
 
-    private boolean populateMonthsFromStorage(int year) {
+    private void populateMonthsAlwaysIncludeCurrent(int year) {
         monthBox.removeAllItems();
+        java.util.Set<Integer> months = new java.util.TreeSet<>();
         try {
-            List<Integer> months = appContext.getStorage().listExistingMonths(year);
-            if (months == null || months.isEmpty()) {
-                int currentYear = java.time.Year.now().getValue();
-                int currentMonth = java.time.LocalDate.now().getMonthValue();
-                if (year == currentYear) {
-                    monthBox.addItem(java.time.Month.of(currentMonth).name());
-                    return true;
-                }
-                return false;
-            }
-            for (Integer m : months) {
-                Month mm = Month.of(m);
-                monthBox.addItem(mm.name());
-            }
-            return false;
-        } catch (Exception e) {
-            int currentYear = java.time.Year.now().getValue();
-            int currentMonth = java.time.LocalDate.now().getMonthValue();
-            if (year == currentYear) {
-                monthBox.addItem(java.time.Month.of(currentMonth).name());
-                return true;
-            }
-            return false;
+            List<Integer> fromStorage = appContext.getStorage().listExistingMonths(year);
+            if (fromStorage != null) months.addAll(fromStorage);
+        } catch (Exception ignored) {}
+
+        java.time.YearMonth now = java.time.YearMonth.now();
+        if (year == now.getYear()) {
+            months.add(now.getMonthValue()); // รวมเดือนปัจจุบันเสมอถ้าเป็นปีนี้
+        }
+
+        for (Integer m : months) {
+            monthBox.addItem(java.time.Month.of(m).name());
         }
     }
 
@@ -271,6 +235,34 @@ public class Summary extends JPanel {
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
+    /** เคลียร์ค่าแสดงผล + รีเซ็ต combobox เป็น -1 (ไม่เลือก) แต่ยังคงรายการปี/เดือนปัจจุบันใน list */
+    private void resetSelectorsToUnselected() {
+        suppressEvents = true;
+        // เคลียร์ค่าแสดงผล
+        totalSpendLabel.setText("0");
+        incomeLabel.setText("0");
+        saveLabel.setText("0");
+        transactionLabel.setText("0");
+
+        // เคลียร์กราฟ
+        chartPanel.removeAll();
+        chartPanel.revalidate();
+        chartPanel.repaint();
+
+        // ปี: คงรายการเดิมไว้แต่ตั้งไม่เลือก
+        if (yearBox.getItemCount() == 0) {
+            populateYearsAlwaysIncludeCurrent();
+        }
+        yearBox.setSelectedIndex(-1);
+
+        // เดือน: ล้างรายการและตั้งไม่เลือก
+        monthBox.removeAllItems();
+        monthBox.setSelectedIndex(-1);
+
+        suppressEvents = false;
+    }
+
+    /** ใช้ตอนเปลี่ยนปี/เดือนไม่ครบ เพื่อเคลียร์ค่าหน้าจอ โดย "ไม่" ยุ่งกับรายการใน combobox */
     private void clearSummaryDisplay() {
         totalSpendLabel.setText("0");
         incomeLabel.setText("0");
@@ -280,30 +272,6 @@ public class Summary extends JPanel {
         chartPanel.removeAll();
         chartPanel.revalidate();
         chartPanel.repaint();
-
-        suppressEvents = true;
-        monthBox.removeAllItems();
-        yearBox.removeAllItems();
-
-        boolean usedYearFallback = populateYearsFromStorage();
-        if (usedYearFallback) {
-            Integer currentYear = java.time.Year.now().getValue();
-            yearBox.setSelectedItem(currentYear);
-            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
-            if (usedMonthFallback) {
-                Month currentMonth = java.time.LocalDate.now().getMonth();
-                monthBox.setSelectedItem(currentMonth.name());
-                suppressEvents = false;
-                updateSummaryAndChart(currentYear, currentMonth);
-                return;
-            } else {
-                monthBox.setSelectedIndex(-1);
-            }
-        } else {
-            yearBox.setSelectedIndex(-1);
-            monthBox.setSelectedIndex(-1);
-        }
-        suppressEvents = false;
     }
 
     @Override

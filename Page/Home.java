@@ -202,10 +202,9 @@ public class Home extends JPanel {
         hue = (float) ((hue + Math.sin(hash)) % 1.0);
 
         // ป้องกัน hue เป็นค่าลบ
-        if (hue < 0){
+        if (hue < 0) {
             hue += 1.0f;
         }
-            
 
         return Color.getHSBColor(hue, saturation, brightness);
     }
