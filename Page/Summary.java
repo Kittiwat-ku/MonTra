@@ -113,7 +113,7 @@ public class Summary extends JPanel {
             suppressEvents = false;
         }
 
-        // เมื่อเลือกปี → อัปเดตรายชื่อเดือน แต่ไม่อัปเดตกราฟ
+        // เมื่อเลือกปีแล้ว ให้อัปเดตรายชื่อเดือน แต่ไม่อัปเดตกราฟ
         yearBox.addActionListener(e -> {
             if (suppressEvents) {
                 return;
@@ -132,7 +132,7 @@ public class Summary extends JPanel {
             }
         });
 
-        // เมื่อเลือกเดือน + ปีครบ → แสดงสรุป
+        // เมื่อเลือกเดือน + ปีครบ ให้แสดงสรุป
         monthBox.addActionListener(e2 -> {
             if (suppressEvents) {
                 return;
@@ -250,17 +250,25 @@ public class Summary extends JPanel {
             return pie;
         }
         for (CategorySlice s : slices) {
-            pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), colorFromName(s.getCategory())));
+            pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), generateColorFromName(s.getCategory())));
         }
         return pie;
     }
 
-    private Color colorFromName(String name) {
-        int hash = Math.abs(name.hashCode());
-        float hue = (hash % 360) / 360f;
-        float sat = 0.6f + ((hash % 100) / 500f);
-        float bri = 0.85f;
-        return Color.getHSBColor(hue, sat, bri);
+    private Color generateColorFromName(String name) {
+        int hash = Math.abs(name.hashCode() * 31 + name.length() * 97);
+        float hue = ((hash % 1000) / 1000f); // (0.0–1.0)
+        float saturation = 0.55f + ((hash % 300) / 1000f); // 0.55–0.85
+        float brightness = 0.75f + ((hash % 200) / 1000f); // 0.75–0.95
+
+        // ทำให้สีแตกต่างกันมากขึ้นในแต่ละชื่อ
+        hue = (float) ((hue + Math.sin(hash)) % 1.0);
+
+        // ป้องกัน hue เป็นค่าลบ
+        if (hue < 0){
+            hue += 1.0f;
+        }
+        return Color.getHSBColor(hue, saturation, brightness);
     }
 
     private void clearSummaryDisplay() {
