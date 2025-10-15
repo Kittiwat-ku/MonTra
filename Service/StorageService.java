@@ -45,6 +45,8 @@ public class StorageService {
         }
     }
 
+
+
     private void createDirIfNotExists(Path p) throws IOException {
         if (!Files.exists(p)) Files.createDirectories(p);
     }
@@ -98,11 +100,6 @@ public class StorageService {
         return LOGS_DIR.resolve(year).resolve(month + ".csv");
     }
 
-    public List<String> readMonthlyLogLinesNoCreate(LocalDate date) throws IOException {
-        Path file = buildMonthlyLogPathNoCreate(date);
-        if (!Files.exists(file)) return new ArrayList<>();
-        return FileIO.readLines(file);
-    }
     // ปีที่มีโฟลเดอร์จริง
     public List<Integer> listExistingLogYears() throws IOException {
         List<Integer> years = new ArrayList<>();
@@ -135,7 +132,7 @@ public class StorageService {
         months.sort(Integer::compareTo);
         return months;
     }
-
+    
     // Export
     public Path buildExportPath(String filename) throws IOException {
         if (filename == null) throw new IllegalArgumentException("filename must not be null");

@@ -6,6 +6,7 @@ import Expense.DailyExpense;
 import Expense.Expense;
 import Expense.MonthlySummary;
 import Expense.TempExpenseStore;
+import Util.CsvUtils;
 import Expense.CategorySlice;
 
 import java.beans.PropertyChangeListener;
@@ -85,7 +86,7 @@ public class AppContext {
         }
     }
 
-    // ยอดที่ใช้ไปวันนี้ 
+    // ยอดที่ใช้ไปวันนี้
     public double getSpentToday() {
         return dailyExpense.getSpent();
     }
@@ -113,12 +114,12 @@ public class AppContext {
     }
 
     // Balance
-    //คืนค่ายอดคงเหลือปัจจุบัน
+    // คืนค่ายอดคงเหลือปัจจุบัน
     public double getBalance() {
         return config.getBalance();
     }
 
-    //เพิ่มรายรับ เข้าBalance
+    // เพิ่มรายรับ เข้าBalance
     public void addIncome(double amount) throws IOException {
         if (amount <= 0)
             throw new IllegalArgumentException("amount must be > 0");
@@ -136,7 +137,7 @@ public class AppContext {
         pcs.firePropertyChange("reload", null, null);
     }
 
-    //หมวดหมู่
+    // หมวดหมู่
     // รายชื่อหมวดหมู่
     public List<String> getCategories() {
         return config.getCategories();
@@ -153,7 +154,7 @@ public class AppContext {
         pcs.firePropertyChange("UpdateCatList", null, null);
     }
 
-    // ลบหมวดหมู่ 
+    // ลบหมวดหมู่
     public void removeCategory(String cat) throws IOException {
         config.removeCategory(cat);
         configManager.save(config);
@@ -161,24 +162,26 @@ public class AppContext {
     }
 
     // Summary รายเดือน (อ่าน log + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
-    // 
+    //
     /**
      * ดึง summary ของเดือนที่เลือก
      * - อ่านจากไฟล์รายเดือน
      * - ถ้าเป็นเดือนปัจจุบัน ก็ให้ รวม TodayTemp เพิ่มเข้าไป
      */
+
     public MonthlySummary getMonthlySummary(YearMonth month) throws IOException {
         if (month == null) {
             throw new IllegalArgumentException("month must not be null");
         }
 
-        // ใช้เวอร์ชัน NoCreate เพื่อไม่สร้างโฟลเดอร์ใหม่โดยไม่ได้ตั้งใจ
-        List<String> lines = storage.readMonthlyLogLinesNoCreate(month.atDay(1));
+        // อ่านไฟล์ log แบบไม่สร้างโฟลเดอร์/ไฟล์
+        List<String> lines = storage.readMonthlyLogLines(month.atDay(1));
 
         int totalTransactions = 0;
         double totalSpent = 0.0;
         double remainingEnd = 0.0;
 
+        // ดึงค่าจากบรรทัด summary ถ้ามี
         for (String line : lines) {
             if (line == null)
                 continue;
@@ -186,36 +189,48 @@ public class AppContext {
             if (t.startsWith("# summary,")) {
                 String[] parts = t.split(",", -1);
                 if (parts.length >= 4) {
-                    totalTransactions += Util.CsvUtils.parseIntOrZero(parts[1]);
-                    totalSpent += Util.CsvUtils.parseDoubleOrZero(parts[2]);
-                    remainingEnd = Util.CsvUtils.parseDoubleOrZero(parts[3]);
+                    totalTransactions += CsvUtils.parseIntOrZero(parts[1]);
+                    totalSpent += CsvUtils.parseDoubleOrZero(parts[2]);
+                    remainingEnd = CsvUtils.parseDoubleOrZero(parts[3]); // ใช้ค่าล่าสุด
                 }
             }
         }
 
-        // รวมข้อมูลของเดือนปัจจุบันด้วย TodayTemp
+        // แปลงบรรทัดรายการในไฟล์ให้เป็น expensesFromLog
+        List<Expense> expensesFromLog = CsvUtils.parseExpensesFromLines(lines);
+
+        //ถ้าเป็นเดือนปัจจุบัน ก็ให้ รวมรายการจาก Temp (วันนี้) เพิ่มเข้าไป
         YearMonth current = YearMonth.now();
         if (month.equals(current)) {
             List<Expense> todayItems = tempStore.readToday();
-            int todayCount = todayItems.size();
+
+            // รวมยอดเพิ่มเข้า summary
+            totalTransactions += todayItems.size();
             double todaySpent = 0.0;
             for (Expense e : todayItems) {
                 todaySpent += e.getAmount();
             }
-
-            totalTransactions += todayCount;
             totalSpent += todaySpent;
+
+            // remaining_end ของเดือนปัจจุบันให้ใช้ balance ปัจจุบัน
             remainingEnd = getBalance();
+
+            // รวมรายการ: log + today
+            List<Expense> merged = new ArrayList<>(expensesFromLog.size() + todayItems.size());
+            merged.addAll(expensesFromLog);
+            merged.addAll(todayItems);
+            return new MonthlySummary(totalTransactions, totalSpent, remainingEnd, merged);
         }
 
-        return new MonthlySummary(totalTransactions, totalSpent, remainingEnd);
+        // 5 ไม่ใช่เดือนปัจจุบัน ก็ให้ คืนเฉพาะข้อมูลจากไฟล์
+        return new MonthlySummary(totalTransactions, totalSpent, remainingEnd, expensesFromLog);
     }
 
-    public StorageService getStorage() {
+     public StorageService getStorage() {
         return storage;
     }
 
-    // Export 
+    // Export
     public void exportCustom(String filename) throws IOException {
         if (filename == null) {
             throw new IllegalArgumentException("filename must not be null");
@@ -235,7 +250,7 @@ public class AppContext {
         customExport.exportCSV(items, remainingEnd, safe);
     }
 
-    //รวมยอดตามหมวดวันนี้
+    // รวมยอดตามหมวดวันนี้
     public Map<String, Double> getTodaySpendByCategory() {
         Map<String, Double> map = new LinkedHashMap<>();
         for (Expense e : getTodayExpenses()) {
@@ -256,7 +271,7 @@ public class AppContext {
         return out;
     }
 
-    //รวมยอดตามหมวดรายเดือน
+    // รวมยอดตามหมวดรายเดือน
     /**
      * รวมยอดใช้จ่ายรายเดือนตามหมวดหมู่ (อ่าน Logs + รวม Temp ถ้าเป็นเดือนปัจจุบัน)
      */
