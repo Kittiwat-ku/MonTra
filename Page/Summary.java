@@ -1,6 +1,7 @@
 package Page;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.time.Month;
 import java.time.YearMonth;
@@ -19,23 +20,29 @@ import chart.PieChart;
 public class Summary extends JPanel {
     private final AppContext appContext;
     private RoundedPanel chartPanel;
+
     private JComboBox<String> monthBox;
     private JComboBox<Integer> yearBox;
     private JLabel totalSpendLabel, incomeLabel, saveLabel, transactionLabel;
-    private boolean suppressMonthEvents = false;
+    private boolean suppressEvents = false; // ป้องกัน event วิ่งซ้ำ
 
     public Summary(AppController controller, AppContext appContext) {
         this.appContext = appContext;
         setLayout(null);
 
-        JButton back = new PillButton("← Back");
-        back.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        back.setBounds(0, 10, 100, 30);
-        ((PillButton) back).setButtonStyle(PillButton.Style.OUTLINE);
-        back.setForeground(Color.WHITE);
-        add(back);
-        back.addActionListener(e -> controller.showPage("Home"));
+        // ปุ่มย้อนกลับ
+        JButton b1 = new PillButton("← Back");
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b1.setBounds(0, 10, 100, 30);
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE);
+        add(b1);
+        b1.addActionListener(e -> {
+            clearSummaryDisplay();
+            controller.showPage("Home");
+        });
 
+        // List button
         JButton viewList = new PillButton("View List");
         viewList.setFont(new Font("Segoe UI", Font.BOLD, 16));
         viewList.setBounds(260, 10, 100, 30);
@@ -44,7 +51,8 @@ public class Summary extends JPanel {
         add(viewList);
         viewList.addActionListener(e -> controller.showPage("MList"));
 
-        // label info
+
+        // Label แสดงค่า
         totalSpendLabel = makeValueLabel(Color.RED, 120, 476);
         incomeLabel = makeValueLabel(Color.YELLOW, 120, 551);
         saveLabel = makeValueLabel(Color.GREEN, 120, 626);
@@ -54,22 +62,25 @@ public class Summary extends JPanel {
         add(saveLabel);
         add(transactionLabel);
 
+        // Title label
         add(makeTitleLabel("Total Spend:", 10, 475));
         add(makeTitleLabel("Income:", 10, 550));
         add(makeTitleLabel("Save:", 10, 625));
         add(makeTitleLabel("Transaction:", 10, 700));
 
+        // เส้นคั่น
         add(makeLine(0, 510));
         add(makeLine(0, 585));
         add(makeLine(0, 660));
         add(makeLine(0, 735));
 
+        // กราฟ
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setBounds(30, 100, 300, 300);
         chartPanel.setLayout(new BorderLayout());
         add(chartPanel);
 
-        // month/year combo
+        // Combobox
         monthBox = new JComboBox<>();
         monthBox.setBounds(180, 402, 100, 30);
         add(monthBox);
@@ -78,50 +89,108 @@ public class Summary extends JPanel {
         yearBox.setBounds(65, 402, 100, 30);
         add(yearBox);
 
-        populateYearsFromStorage();
+        // เตรียมค่าเริ่มต้น
+        suppressEvents = true;
+        boolean usedYearFallback = populateYearsFromStorage();
 
+        if (usedYearFallback) {
+            Integer currentYear = java.time.Year.now().getValue();
+            yearBox.setSelectedItem(currentYear);
+            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
+            if (usedMonthFallback) {
+                Month currentMonth = java.time.LocalDate.now().getMonth();
+                monthBox.setSelectedItem(currentMonth.name());
+                suppressEvents = false;
+                updateSummaryAndChart(currentYear, currentMonth);
+            } else {
+                monthBox.setSelectedIndex(-1);
+                suppressEvents = false;
+            }
+        } else {
+            monthBox.removeAllItems();
+            yearBox.setSelectedIndex(-1);
+            monthBox.setSelectedIndex(-1);
+            suppressEvents = false;
+        }
+
+        // เมื่อเลือกปี → อัปเดตรายชื่อเดือน แต่ไม่อัปเดตกราฟ
         yearBox.addActionListener(e -> {
+            if (suppressEvents) {
+                return;
+            }
             if (yearBox.getSelectedIndex() != -1) {
                 Integer year = (Integer) yearBox.getSelectedItem();
+                suppressEvents = true;
                 populateMonthsFromStorage(year);
+                monthBox.setSelectedIndex(-1); 
+                suppressEvents = false;
+            } else {
+                suppressEvents = true;
+                monthBox.removeAllItems();
                 monthBox.setSelectedIndex(-1);
+                suppressEvents = false;
             }
         });
 
-        monthBox.addActionListener(e -> {
-            if (suppressMonthEvents) return;
-            if (yearBox.getSelectedIndex() == -1 || monthBox.getSelectedIndex() == -1) return;
-            int year = (Integer) yearBox.getSelectedItem();
-            Month m = Month.valueOf((String) monthBox.getSelectedItem());
-            updateSummaryAndChart(year, m);
+        // เมื่อเลือกเดือน + ปีครบ → แสดงสรุป
+        monthBox.addActionListener(e2 -> {
+            if (suppressEvents) {
+                return;
+            }
+            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
+                int year = (Integer) yearBox.getSelectedItem();
+                Month m = Month.valueOf((String) monthBox.getSelectedItem());
+                updateSummaryAndChart(year, m);
+            }
         });
     }
 
-    private void populateYearsFromStorage() {
+    private boolean populateYearsFromStorage() {
         yearBox.removeAllItems();
         try {
             List<Integer> years = appContext.getStorage().listExistingLogYears();
-            for (Integer y : years) yearBox.addItem(y);
+            if (years == null || years.isEmpty()) {
+                yearBox.addItem(java.time.Year.now().getValue());
+                return true;
+            }
+            for (Integer y : years) {
+                yearBox.addItem(y);
+            }
+            return false;
         } catch (Exception e) {
-            yearBox.addItem(YearMonth.now().getYear());
+            yearBox.addItem(java.time.Year.now().getValue());
+            return true;
         }
     }
 
-    private void populateMonthsFromStorage(int year) {
-    suppressMonthEvents = true;
-    try {
+    private boolean populateMonthsFromStorage(int year) {
         monthBox.removeAllItems();
-        List<Integer> months = appContext.getStorage().listExistingMonths(year);
-        for (Integer m : months) {
-            monthBox.addItem(Month.of(m).name());
+        try {
+            List<Integer> months = appContext.getStorage().listExistingMonths(year);
+            if (months == null || months.isEmpty()) {
+                int currentYear = java.time.Year.now().getValue();
+                int currentMonth = java.time.LocalDate.now().getMonthValue();
+                if (year == currentYear) {
+                    monthBox.addItem(java.time.Month.of(currentMonth).name());
+                    return true;
+                }
+                return false;
+            }
+            for (Integer m : months) {
+                Month mm = Month.of(m);
+                monthBox.addItem(mm.name());
+            }
+            return false;
+        } catch (Exception e) {
+            int currentYear = java.time.Year.now().getValue();
+            int currentMonth = java.time.LocalDate.now().getMonthValue();
+            if (year == currentYear) {
+                monthBox.addItem(java.time.Month.of(currentMonth).name());
+                return true;
+            }
+            return false;
         }
-    } catch (Exception e) {
-        e.printStackTrace(); // หรือ JOptionPane.showMessageDialog(this, e.getMessage());
-    } finally {
-        suppressMonthEvents = false;
     }
-}
-
 
     private JLabel makeValueLabel(Color c, int x, int y) {
         JLabel lbl = new JLabel("0", SwingConstants.LEFT);
@@ -150,55 +219,99 @@ public class Summary extends JPanel {
             YearMonth ym = YearMonth.of(year, month);
             MonthlySummary summary = appContext.getMonthlySummary(ym);
 
-            totalSpendLabel.setText(String.format("%,.2f", summary.getTotalSpent()));
-            saveLabel.setText(String.format("%,.2f", summary.getRemainingEnd()));
-            incomeLabel.setText(String.format("%,.2f", summary.getRemainingEnd() + summary.getTotalSpent()));
-            transactionLabel.setText(String.valueOf(summary.getTransactions()));
+            double totalSpent = summary.getTotalSpent();
+            double remaining = summary.getRemainingEnd();
+            double income = remaining + totalSpent;
+            int trans = summary.getTransactions();
+
+            totalSpendLabel.setText(String.format("%,.2f", totalSpent));
+            incomeLabel.setText(String.format("%,.2f", income));
+            saveLabel.setText(String.format("%,.2f", remaining));
+            transactionLabel.setText(String.valueOf(trans));
 
             chartPanel.removeAll();
-            PieChart chart = new PieChart();
-            for (CategorySlice s : appContext.getMonthlyCategorySlices(ym)) {
-                chart.addData(new ModelPieChart(s.getCategory(), s.getAmount(),
-                        generateColorFromName(s.getCategory())));
-            }
+            PieChart chart = createPieChartForMonth(ym);
             chartPanel.add(chart, BorderLayout.CENTER);
             chartPanel.revalidate();
             chartPanel.repaint();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
-    private Color generateColorFromName(String name) {
-        int hash = Math.abs(name.hashCode() * 31 + name.length() * 97);
-        float hue = ((hash % 1000) / 1000f); // (0.0–1.0)
-        float saturation = 0.55f + ((hash % 300) / 1000f); // 0.55–0.85
-        float brightness = 0.75f + ((hash % 200) / 1000f); // 0.75–0.95
+    private PieChart createPieChartForMonth(YearMonth ym) throws Exception {
+        PieChart pie = new PieChart();
+        pie.setChartType(PieChart.PeiChartType.DEFAULT);
+        pie.setOpaque(false);
 
-        // ทำให้สีแตกต่างกันมากขึ้นในแต่ละชื่อ
-        hue = (float) ((hue + Math.sin(hash)) % 1.0);
-
-        // ป้องกัน hue เป็นค่าลบ
-        if (hue < 0){
-            hue += 1.0f;
+        List<CategorySlice> slices = appContext.getMonthlyCategorySlices(ym);
+        if (slices == null || slices.isEmpty()) {
+            pie.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
+            return pie;
         }
-            
+        for (CategorySlice s : slices) {
+            pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), colorFromName(s.getCategory())));
+        }
+        return pie;
+    }
 
-        return Color.getHSBColor(hue, saturation, brightness);
+    private Color colorFromName(String name) {
+        int hash = Math.abs(name.hashCode());
+        float hue = (hash % 360) / 360f;
+        float sat = 0.6f + ((hash % 100) / 500f);
+        float bri = 0.85f;
+        return Color.getHSBColor(hue, sat, bri);
+    }
+
+    private void clearSummaryDisplay() {
+        totalSpendLabel.setText("0");
+        incomeLabel.setText("0");
+        saveLabel.setText("0");
+        transactionLabel.setText("0");
+
+        chartPanel.removeAll();
+        chartPanel.revalidate();
+        chartPanel.repaint();
+
+        suppressEvents = true;
+        monthBox.removeAllItems();
+        yearBox.removeAllItems();
+
+        boolean usedYearFallback = populateYearsFromStorage();
+        if (usedYearFallback) {
+            Integer currentYear = java.time.Year.now().getValue();
+            yearBox.setSelectedItem(currentYear);
+            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
+            if (usedMonthFallback) {
+                Month currentMonth = java.time.LocalDate.now().getMonth();
+                monthBox.setSelectedItem(currentMonth.name());
+                suppressEvents = false;
+                updateSummaryAndChart(currentYear, currentMonth);
+                return;
+            } else {
+                monthBox.setSelectedIndex(-1);
+            }
+        } else {
+            yearBox.setSelectedIndex(-1);
+            monthBox.setSelectedIndex(-1);
+        }
+        suppressEvents = false;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int w = getWidth(), h = getHeight();
         Point2D start = new Point2D.Float(0, 0);
-        Point2D end = new Point2D.Float(getWidth(), getHeight());
-        float[] dist = {0f, 0.5f, 1f};
-        Color[] colors = {new Color(0x4A5C58), new Color(0x0A5C36), new Color(0x1F2C2E)};
+        Point2D end = new Point2D.Float(w, h);
+        float[] dist = { 0.0f, 0.5f, 1.0f };
+        Color[] colors = { new Color(0x4A5C58), new Color(0x0A5C36), new Color(0x1F2C2E) };
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
-        g2.setPaint(lgp);
-        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2d.setPaint(lgp);
+        g2d.fillRect(0, 0, w, h);
     }
 }

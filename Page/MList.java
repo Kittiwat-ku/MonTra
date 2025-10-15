@@ -1,22 +1,31 @@
 package Page;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.time.Month;
 import java.time.YearMonth;
+import java.util.List;
 import javax.swing.*;
+
 import ButtonDesign.PillButton;
 import ButtonDesign.RoundedPanel;
 import Controller.AppController;
 import Expense.Expense;
+import Expense.MonthlySummary;
 import Service.AppContext;
 
 public class MList extends JPanel {
+
     private final AppContext appContext;
     private RoundedPanel MListPanel;
     private JScrollPane scroll;
     private JComboBox<String> monthBox;
     private JComboBox<Integer> yearBox;
+    private boolean suppressEvents = false;
+
+    private JList<Expense> list;
+    private DefaultListModel<Expense> model;
 
     public MList(AppController controller, AppContext appContext) {
         this.appContext = appContext;
@@ -48,38 +57,8 @@ public class MList extends JPanel {
         header.add(right);
         MListPanel.add(header, BorderLayout.NORTH);
 
-        scroll = buildMonthlyList();
-        MListPanel.add(scroll, BorderLayout.CENTER);
-
-        appContext.addListener(evt -> {
-            if ("reload".equals(evt.getPropertyName())) {
-                reloadList();
-            }
-        });
-
-        monthBox = new JComboBox<>();
-        monthBox.setBounds(60, 70, 100, 30);
-        add(monthBox);
-
-        yearBox = new JComboBox<>();
-        yearBox.setBounds(200, 70, 100, 30);
-        add(yearBox);
-    }
-
-   
-    private JScrollPane buildMonthlyList() {
-        DefaultListModel<Expense> model = new DefaultListModel<>();
-        try {
-            YearMonth month = YearMonth.now(); 
-            for (Expense e : appContext.getMonthlyExpenses(month)) {
-                model.addElement(e);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error loading monthly data: " + ex.getMessage());
-        }
-
-        JList<Expense> list = new JList<>(model);
+        model = new DefaultListModel<>();
+        list = new JList<>(model);
         list.setFixedCellHeight(45);
         list.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         list.setBackground(Color.WHITE);
@@ -90,9 +69,8 @@ public class MList extends JPanel {
             row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)));
 
             String dateTime = formatDateTime(value.getDate());
-
-            JPanel left = new JPanel(new GridLayout(2, 1));
-            left.setOpaque(false);
+            JPanel leftP = new JPanel(new GridLayout(2, 1));
+            leftP.setOpaque(false);
 
             JLabel desc = new JLabel(value.getDescription(), SwingConstants.LEFT);
             desc.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -101,48 +79,188 @@ public class MList extends JPanel {
             cat.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             cat.setForeground(Color.GRAY);
 
-            left.add(desc);
-            left.add(cat);
+            leftP.add(desc);
+            leftP.add(cat);
 
             JLabel amount = new JLabel(String.format("%,.2f", value.getAmount()), SwingConstants.RIGHT);
             amount.setFont(new Font("Segoe UI", Font.BOLD, 14));
             amount.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
-            row.add(left, BorderLayout.CENTER);
+            row.add(leftP, BorderLayout.CENTER);
             row.add(amount, BorderLayout.EAST);
 
-            if (isSelected)
+            if (isSelected) {
                 row.setBackground(new Color(230, 240, 255));
-            else
+            } else {
                 row.setBackground(index % 2 == 0 ? new Color(250, 250, 250) : new Color(235, 235, 235));
+            }
 
             return row;
         });
 
-        JScrollPane sp = new JScrollPane(list);
-        sp.setBorder(BorderFactory.createEmptyBorder());
-        sp.getVerticalScrollBar().setUnitIncrement(16);
-        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        return sp;
+        scroll = new JScrollPane(list);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        MListPanel.add(scroll, BorderLayout.CENTER);
+
+        // ComboBox Year/Month
+        monthBox = new JComboBox<>();
+        monthBox.setBounds(200, 70, 100, 30);
+        add(monthBox);
+
+        yearBox = new JComboBox<>();
+        yearBox.setBounds(60, 70, 100, 30);
+        add(yearBox);
+
+        // เตรียมค่าเริ่มต้นแบบเดียวกับ Summary
+        setupYearMonthSelectors();
+
+        appContext.addListener(evt -> {
+            if ("reload".equals(evt.getPropertyName())) {
+                reloadList();
+            }
+        });
+    }
+
+    /** เหมือน Summary.java: โหลดปี/เดือนเริ่มต้น พร้อม fallback ปี-เดือนปัจจุบัน */
+    private void setupYearMonthSelectors() {
+        suppressEvents = true;
+        boolean usedYearFallback = populateYearsFromStorage();
+
+        if (usedYearFallback) {
+            Integer currentYear = java.time.Year.now().getValue();
+            yearBox.setSelectedItem(currentYear);
+            boolean usedMonthFallback = populateMonthsFromStorage(currentYear);
+            if (usedMonthFallback) {
+                Month currentMonth = java.time.LocalDate.now().getMonth();
+                monthBox.setSelectedItem(currentMonth.name());
+                suppressEvents = false;
+                updateMonthlyList(currentYear, currentMonth);
+            } else {
+                monthBox.setSelectedIndex(-1);
+                suppressEvents = false;
+            }
+        } else {
+            monthBox.removeAllItems();
+            yearBox.setSelectedIndex(-1);
+            monthBox.setSelectedIndex(-1);
+            suppressEvents = false;
+        }
+
+        // เมื่อเลือกปี → อัปเดตเดือน
+        yearBox.addActionListener(e -> {
+            if (suppressEvents) {
+                return;
+            }
+            if (yearBox.getSelectedIndex() != -1) {
+                Integer year = (Integer) yearBox.getSelectedItem();
+                suppressEvents = true;
+                populateMonthsFromStorage(year);
+                monthBox.setSelectedIndex(-1);
+                suppressEvents = false;
+            } else {
+                suppressEvents = true;
+                monthBox.removeAllItems();
+                monthBox.setSelectedIndex(-1);
+                suppressEvents = false;
+            }
+        });
+
+        // เมื่อเลือกเดือน + ปีครบ → แสดงรายการรายจ่าย
+        monthBox.addActionListener(e -> {
+            if (suppressEvents) {
+                return;
+            }
+            if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
+                int year = (Integer) yearBox.getSelectedItem();
+                Month month = Month.valueOf((String) monthBox.getSelectedItem());
+                updateMonthlyList(year, month);
+            }
+        });
+    }
+
+    private boolean populateYearsFromStorage() {
+        yearBox.removeAllItems();
+        try {
+            List<Integer> years = appContext.getStorage().listExistingLogYears();
+            if (years == null || years.isEmpty()) {
+                yearBox.addItem(java.time.Year.now().getValue());
+                return true;
+            }
+            for (Integer y : years) {
+                yearBox.addItem(y);
+            }
+            return false;
+        } catch (Exception e) {
+            yearBox.addItem(java.time.Year.now().getValue());
+            return true;
+        }
+    }
+
+    private boolean populateMonthsFromStorage(int year) {
+        monthBox.removeAllItems();
+        try {
+            List<Integer> months = appContext.getStorage().listExistingMonths(year);
+            if (months == null || months.isEmpty()) {
+                int currentYear = java.time.Year.now().getValue();
+                int currentMonth = java.time.LocalDate.now().getMonthValue();
+                if (year == currentYear) {
+                    monthBox.addItem(java.time.Month.of(currentMonth).name());
+                    return true;
+                }
+                return false;
+            }
+            for (Integer m : months) {
+                monthBox.addItem(Month.of(m).name());
+            }
+            return false;
+        } catch (Exception e) {
+            int currentYear = java.time.Year.now().getValue();
+            int currentMonth = java.time.LocalDate.now().getMonthValue();
+            if (year == currentYear) {
+                monthBox.addItem(java.time.Month.of(currentMonth).name());
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /** โหลดข้อมูลรายจ่ายจาก AppContext.getMonthlySummary */
+    private void updateMonthlyList(int year, Month month) {
+        try {
+            model.clear();
+            YearMonth ym = YearMonth.of(year, month);
+            MonthlySummary summary = appContext.getMonthlySummary(ym);
+            List<Expense> expenses = summary.getExpenses();
+            if (expenses == null || expenses.isEmpty()) {
+                model.addElement(new Expense("(No data)", "", 0.0, ""));
+                return;
+            }
+            for (Expense e : expenses) {
+                model.addElement(e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void reloadList() {
-        JScrollPane newScroll = buildMonthlyList();
-        MListPanel.remove(scroll);
-        scroll = newScroll;
-        MListPanel.add(scroll, BorderLayout.CENTER);
-        MListPanel.revalidate();
-        MListPanel.repaint();
+        if (yearBox.getSelectedIndex() != -1 && monthBox.getSelectedIndex() != -1) {
+            int year = (Integer) yearBox.getSelectedItem();
+            Month month = Month.valueOf((String) monthBox.getSelectedItem());
+            updateMonthlyList(year, month);
+        }
     }
 
     private String formatDateTime(String raw) {
         try {
             java.time.LocalDateTime dt = java.time.LocalDateTime.parse(raw);
-            java.time.format.DateTimeFormatter fmt =
-                    java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm",
+                    java.util.Locale.ENGLISH);
             return dt.format(fmt);
         } catch (Exception e) {
-            return raw;
+            return raw; // ถ้า parse ไม่ได้ ก็แสดงตามเดิม
         }
     }
 
@@ -156,8 +274,8 @@ public class MList extends JPanel {
         int w = getWidth(), h = getHeight();
         Point2D start = new Point2D.Float(0, 0);
         Point2D end = new Point2D.Float(w, h);
-        float[] dist = {0.0f, 0.5f, 1.0f};
-        Color[] colors = {new Color(0x4A5C58), new Color(0x0A5C36), new Color(0x1F2C2E)};
+        float[] dist = { 0.0f, 0.5f, 1.0f };
+        Color[] colors = { new Color(0x4A5C58), new Color(0x0A5C36), new Color(0x1F2C2E) };
         LinearGradientPaint lgp = new LinearGradientPaint(start, end, dist, colors);
         g2d.setPaint(lgp);
         g2d.fillRect(0, 0, w, h);

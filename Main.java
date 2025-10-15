@@ -62,6 +62,7 @@ public class Main extends JFrame {
         mainPanel.add(new Ep(controller, appContext),          "Ep");
         mainPanel.add(new FBudget(controller, appContext),     "FBudget");
         mainPanel.add(new RemoveBud(controller, appContext),   "RemoveBud");
+        mainPanel.add(new MList(controller, appContext),       "MList");
 
         add(mainPanel);
 
