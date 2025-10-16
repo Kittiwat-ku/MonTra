@@ -1,17 +1,28 @@
 package Page;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.*;
 import javax.swing.*;
 
 import Controller.AppController;
 import ButtonDesign.*;
 
+/**
+ * More page
+ */
 public class More extends JPanel {
 
-    public More(AppController controller){
+    public More(AppController controller) {
         setLayout(null);
 
+        /**
+         * Components
+         * - Back Button
+         * - Category Card
+         * - Export Card
+         */
         JButton b1 = new PillButton("← Back"); 
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
         b1.setBounds(0, 10, 100, 30); 
@@ -34,18 +45,19 @@ public class More extends JPanel {
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton setbt = new MenuCardButton("/image/cat.png", imgW, imgH, radius);
+        JButton setbt = new MenuCard("/image/cat.png", imgW, imgH, radius);
         setbt.setBounds(75, 150, cardW, cardH);
         add(setbt);
 
-        JButton exbt  = new MenuCardButton("/image/ex.png",  imgW, imgH, radius);
+        JButton exbt  = new MenuCard("/image/ex.png", imgW, imgH, radius);
         exbt.setBounds(75, 450, cardW, cardH);
         add(exbt);
 
+        // Actions
+        b1.setToolTipText("Back");
         setbt.setToolTipText("Category");
         exbt.setToolTipText("Export");
-
-        b1.addActionListener(e -> controller.showPage("Home"));
+        b1.addActionListener(e -> controller.showPage("Setting"));
         setbt.addActionListener(e -> controller.showPage("CategoryPath"));
         exbt.addActionListener(e -> controller.showPage("Ep"));
     }

@@ -17,6 +17,14 @@ import chart.PieChart;
 
 import java.util.List;
 
+/**
+ *  Home Page
+ *  แสดงภาพรวมค่าใช้จ่ายวันนี้
+ * -ปุ่มตั้งค่า
+ * -ยอดเงินคงเหลือ
+ * -Pie Chartแสดงสัดส่วนค่าใช้จ่ายตามหมวดหมู่
+ * -รายการค่าใช้จ่ายวันนี้
+ */
 public class Home extends JPanel {
     private final AppContext appContext;
     private JScrollPane scroll;
@@ -31,10 +39,19 @@ public class Home extends JPanel {
         JPanel contentPanel = new JPanel(null);
         contentPanel.setOpaque(false);
 
-        CircleButton settingsBtn = new CircleButton("🗃️");
-        settingsBtn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
-        settingsBtn.setBounds(30, 30, 40, 40);
-        contentPanel.add(settingsBtn);
+        /**
+         * Compponent ต่างๆ
+         * -ปุ่มตั้งค่า
+         * -ยอดเงินคงเหลือ
+         * -Pie Chart
+         * -รายการค่าใช้จ่าย
+         * -นาฬิกา แสดงเวลาปัจจุบัน
+         * -Nav Bar
+         */
+        CircleButton sett = new CircleButton("🗃️");
+        sett.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        sett.setBounds(30, 30, 40, 40);
+        contentPanel.add(sett);
 
         JLabel currency = new JLabel("฿");
         JLabel balanceLabel = new JLabel(" ");
@@ -72,16 +89,16 @@ public class Home extends JPanel {
         chartPanel.setLayout(new BorderLayout());
         chartPanel.setBounds(65, 200, 230, 230);
 
-        PieChart pieChart = createPieChartFromContext();
+        PieChart pieChart = createPieChart();
         chartPanel.add(pieChart, BorderLayout.CENTER);
         chartPanel.add(totalSpend, BorderLayout.SOUTH);
         contentPanel.add(chartPanel);
 
-        JLabel listTitle = new JLabel("List:");
-        listTitle.setFont(new Font("Segoe UI", Font.BOLD, 40));
-        listTitle.setForeground(Color.WHITE);
-        listTitle.setBounds(150, 435, 100, 60);
-        contentPanel.add(listTitle);
+        JLabel list = new JLabel("List:");
+        list.setFont(new Font("Segoe UI", Font.BOLD, 40));
+        list.setForeground(Color.WHITE);
+        list.setBounds(150, 435, 100, 60);
+        contentPanel.add(list);
 
         JPanel listPanel = new JPanel(new BorderLayout());
         JPanel head = new JPanel(new GridLayout(1, 3));
@@ -99,7 +116,7 @@ public class Home extends JPanel {
         head.add(h3);
         listPanel.add(head, BorderLayout.NORTH);
 
-        scroll = buildListFromContext();
+        scroll = ContextList();
         listPanel.add(scroll, BorderLayout.CENTER);
         listPanel.setBounds(40, 500, 280, 180);
         contentPanel.add(listPanel);
@@ -139,10 +156,12 @@ public class Home extends JPanel {
         navBar.add(morebt);
         add(navBar, BorderLayout.SOUTH);
 
-        settingsBtn.addActionListener(e -> controller.showPage("Setting"));
+        // action
+        sett.addActionListener(e -> controller.showPage("Setting"));
         homebt.addActionListener(e -> controller.showPage("Summary"));
         addbt.addActionListener(e -> controller.showPage("Add"));
         morebt.addActionListener(e -> controller.showPage("More"));
+        
         // listener จาก context
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
@@ -153,11 +172,11 @@ public class Home extends JPanel {
                 totalSpend.setText("Total Spend: " + String.format("%,.2f", appContext.getSpentToday()));
 
                 // อัปเดตลิสต์จาก context
-                reloadListFromContext();
+                reloadList();
 
                 // อัปเดตกราฟจาก context
                 chartPanel.removeAll();
-                PieChart newChart = createPieChartFromContext();
+                PieChart newChart = createPieChart();
                 chartPanel.add(newChart, BorderLayout.CENTER);
                 chartPanel.add(totalSpend, BorderLayout.SOUTH);
                 chartPanel.revalidate();
@@ -167,7 +186,7 @@ public class Home extends JPanel {
     }
 
     // PieChart ดึงจาก AppContext
-    private PieChart createPieChartFromContext() {
+    private PieChart createPieChart() {
         PieChart pieChart = new PieChart();
         pieChart.setChartType(PieChart.PeiChartType.DEFAULT);
         pieChart.setOpaque(false);
@@ -178,7 +197,7 @@ public class Home extends JPanel {
             pieChart.addData(new ModelPieChart("No Data", 1, Color.LIGHT_GRAY));
         } else {
             for (CategorySlice s : slices) {
-                Color color = generateColorFromName(s.getCategory());
+                Color color = generateColor(s.getCategory());
                 pieChart.addData(new ModelPieChart(s.getCategory(), s.getAmount(), color));
             }
         }
@@ -192,11 +211,12 @@ public class Home extends JPanel {
         return pieChart;
     }
 
-    private Color generateColorFromName(String name) {
+    // สร้างสีจากชื่อหมวดหมู่ (เพื่อให้แต่ละหมวดมีสีประจำตัว)
+    private Color generateColor(String name) {
         int hash = Math.abs(name.hashCode() * 31 + name.length() * 97);
-        float hue = ((hash % 1000) / 1000f); // (0.0–1.0)
-        float saturation = 0.55f + ((hash % 300) / 1000f); // 0.55–0.85
-        float brightness = 0.75f + ((hash % 200) / 1000f); // 0.75–0.95
+        float hue = ((hash % 1000) / 1000f);
+        float saturation = 0.55f + ((hash % 300) / 1000f);
+        float brightness = 0.75f + ((hash % 200) / 1000f);
 
         // ทำให้สีแตกต่างกันมากขึ้นในแต่ละชื่อ
         hue = (float) ((hue + Math.sin(hash)) % 1.0);
@@ -217,7 +237,8 @@ public class Home extends JPanel {
         return Color.WHITE;
     }
 
-    private JScrollPane buildListFromContext() {
+    // ลิสต์แสดงรายการค่าใช้จ่าย
+    private JScrollPane ContextList() {
         DefaultListModel<Expense> model = new DefaultListModel<>();
         for (Expense e : appContext.getTodayExpenses()) {
             model.addElement(e);
@@ -259,7 +280,11 @@ public class Home extends JPanel {
             return row;
         });
 
-        final int DELETE_HITBOX_WIDTH = 36;
+        /**  
+        * โซนลบ
+        * กำหนดขนาดโซนลบ
+        */
+        final int Hitbox = 36;
         list.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -272,7 +297,7 @@ public class Home extends JPanel {
                     return;
 
                 int clickX = e.getX();
-                int deleteZoneStartX = bounds.x + bounds.width - DELETE_HITBOX_WIDTH;
+                int deleteZoneStartX = bounds.x + bounds.width - Hitbox;
                 boolean isSelected = (list.getSelectedIndex() == idx);
 
                 if (isSelected && clickX >= deleteZoneStartX) {
@@ -293,8 +318,8 @@ public class Home extends JPanel {
         return sp;
     }
 
-    private void reloadListFromContext() {
-        JScrollPane newScroll = buildListFromContext();
+    private void reloadList() {
+        JScrollPane newScroll = ContextList();
         scroll.setViewportView(newScroll.getViewport().getView());
     }
 

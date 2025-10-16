@@ -6,19 +6,23 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 
 import javax.swing.*;
-import ButtonDesign.LabeledInputCard;
+import ButtonDesign.LabelCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 
 import Service.AppContext;
 
+/**
+ * หน้าเพิ่มรายรับ
+ */
 public class Budget extends JPanel {
     JLabel errorLabel;
-    LabeledInputCard description;
+    LabelCard description;
 
     public Budget(AppController controller, AppContext appContext) {
         setLayout(null);
 
+        // Back button
         JButton b1 = new PillButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b1.setBounds(0, 10, 100, 30);
@@ -26,6 +30,7 @@ public class Budget extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
+        // Balance
         JLabel remainl1 = new JLabel("฿");
         JLabel remainl2 = new JLabel(" ");
 
@@ -36,14 +41,17 @@ public class Budget extends JPanel {
             e.printStackTrace();
         }
 
+        // ฿
         remainl1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         remainl1.setForeground(Color.WHITE);
         remainl1.setBounds(90, 90, 200, 60);
 
+        // เงินคงเหลือ
         remainl2.setFont(new Font("Segoe UI", Font.BOLD, 20));
         remainl2.setForeground(findcolor(appContext.getBalance()));
         remainl2.setBounds(120, 90, 200, 60);
 
+        // text
         JLabel remainl3 = new JLabel("Balance", SwingConstants.CENTER);
         remainl3.setFont(new Font("Segoe UI", Font.BOLD, 25));
         remainl3.setForeground(Color.WHITE);
@@ -52,22 +60,25 @@ public class Budget extends JPanel {
         add(remainl2);
         add(remainl3);
 
+        // line
         JSeparator line = new JSeparator(SwingConstants.HORIZONTAL);
         line.setForeground(Color.WHITE);
         line.setBounds(80, 145, 200, 5);
         add(line);
 
-        // error
+        // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        errorLabel.setBounds(30, 360, 300, 20);
+        errorLabel.setBounds(30, 360, 400, 30);
         add(errorLabel);
 
-        description = new LabeledInputCard("Add Income", "Add Your Income");
+        // Form
+        description = new LabelCard("Add Income", "Add Your Income");
         description.setBounds(30, 250, 300, 100);
         add(description);
 
+        // Confirm button
         PillButton b2 = new PillButton(" Comfirm ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b2.setBounds(100, 450, 175, 60);
@@ -75,6 +86,7 @@ public class Budget extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
+        // Action
         b1.addActionListener(new ActionListener(){
 
             @Override
@@ -134,6 +146,8 @@ public class Budget extends JPanel {
         });
 
     }
+    
+    // สี ตาม เงินที่เหลือ
     private Color findcolor(double remaining) {
         if (remaining <= 0) return Color.RED;
         if (remaining < 500) return Color.YELLOW;

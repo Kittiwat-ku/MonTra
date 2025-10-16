@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class Config {
-    private double balance;           // ยอดคงเหลือในกระเป๋า
-    private List<String> categories;  // หมวดหมู่
-    private LocalDate lastDate;       // วันที่ล่าสุดที่เปิดโปรแกรม
+    private double balance; // ยอดคงเหลือในกระเป๋า
+    private List<String> categories; // หมวดหมู่
+    private LocalDate lastDate; // วันที่ล่าสุดที่เปิดโปรแกรม
 
     public Config(double balance, List<String> categories) {
         this(balance, categories, LocalDate.now());

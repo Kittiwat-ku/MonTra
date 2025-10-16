@@ -9,6 +9,12 @@ import java.util.Map;
 import Controller.*;
 import Service.AppContext;
 
+/**
+ * หน้า Welcome
+ * - สามารถคลิกตรงไหนก็ได้เพื่อไปยังหน้าต่อไปได้
+ * - ถ้ายังไม่มีการตั้งงบประมาณ จะไปที่หน้า FBudget
+ * - ถ้ามีการตั้งงบประมาณแล้ว จะไปที่หน้า Home
+ */
 public class Welcome extends JPanel {
 
     @SuppressWarnings("unchecked")

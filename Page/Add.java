@@ -11,42 +11,51 @@ import ButtonDesign.*;
 import Controller.AppController;
 import Service.AppContext;
 
+/**
+ * หน้าเพิ่มรายการค่าใช้จ่าย
+ */
 public class Add extends JPanel {
     JLabel errorLabel;
-    LabeledInputCard description;
-    LabeledInputCard amount;
+    LabelCard description;
+    LabelCard amount;
     JComboBox<String> c;
 
     public Add(AppController controller, AppContext appContext) {
         setLayout(null);
 
+        // Title
         JLabel l1 = new JLabel(" Add Your Transaction ");
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         l1.setForeground(new Color(255, 255, 224));
         l1.setBounds(20, 100, 400, 50);
         add(l1);
-
+        
+        // Back button
         JButton b1 = new PillButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b1.setBounds(0, 10, 100, 30);
         ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
         b1.setForeground(Color.WHITE);
         add(b1);
-
-        description = new LabeledInputCard("Description", "Example: Teenoy, Shabu");
+        
+        // Form
+        description = new LabelCard("Description", "Example: Teenoy, Shabu");
         description.setBounds(30, 200, 300, 100);
         add(description);
-
-        amount = new LabeledInputCard("Amount", "Example: 500, 1000");
+        
+        // Amount
+        amount = new LabelCard("Amount", "Example: 500, 1000");
         amount.setBounds(30, 350, 300, 100);
         add(amount);
 
+        // Category
         c = province_to_combobox(appContext.getCategories());
         c.setBounds(57, 500, 250, 50);
         // ให้เริ่มต้นไม่เลือกอะไรเพื่อให้ตรวจ null ได้จริง
         c.setSelectedIndex(-1);
         add(c);
 
+        // Confirm button
         PillButton b2 = new PillButton(" Comfirm ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b2.setBounds(100, 600, 175, 60);
@@ -54,11 +63,11 @@ public class Add extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
-        // error 
+        // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 465, 300, 20);
+        errorLabel.setBounds(30, 465, 400, 30);
         add(errorLabel);
 
         // Action

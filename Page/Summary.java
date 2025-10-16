@@ -38,7 +38,7 @@ public class Summary extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
         b1.addActionListener(e -> {
-            resetSelectorsToUnselected(); // กลับเป็น -1 ทั้งคู่
+            resetSelectors();
             controller.showPage("Home");
         });
 
@@ -52,28 +52,28 @@ public class Summary extends JPanel {
         viewList.addActionListener(e -> controller.showPage("MList"));
 
         // Label แสดงค่า
-        totalSpendLabel = makeValueLabel(Color.RED, 120, 476);
-        incomeLabel = makeValueLabel(Color.YELLOW, 120, 551);
-        saveLabel = makeValueLabel(Color.GREEN, 120, 626);
-        transactionLabel = makeValueLabel(Color.WHITE, 160, 701);
+        totalSpendLabel = ValueLabel(Color.RED, 120, 476);
+        incomeLabel = ValueLabel(Color.YELLOW, 120, 551);
+        saveLabel = ValueLabel(Color.GREEN, 120, 626);
+        transactionLabel = ValueLabel(Color.WHITE, 160, 701);
         add(totalSpendLabel);
         add(incomeLabel);
         add(saveLabel);
         add(transactionLabel);
 
         // Title label
-        add(makeTitleLabel("Total Spend:", 10, 475));
-        add(makeTitleLabel("Income:", 10, 550));
-        add(makeTitleLabel("Save:", 10, 625));
-        add(makeTitleLabel("Transaction:", 10, 700));
+        add(TitleLabel("Total Spend:", 10, 475));
+        add(TitleLabel("Income:", 10, 550));
+        add(TitleLabel("Save:", 10, 625));
+        add(TitleLabel("Transaction:", 10, 700));
 
         // เส้นคั่น
-        add(makeLine(0, 510));
-        add(makeLine(0, 585));
-        add(makeLine(0, 660));
-        add(makeLine(0, 735));
+        add(Line(0, 510));
+        add(Line(0, 585));
+        add(Line(0, 660));
+        add(Line(0, 735));
 
-        // กราฟ
+        // Chart panel
         chartPanel = new RoundedPanel(30, 30, new Color(255, 255, 255, 153), Color.GRAY, 1);
         chartPanel.setBounds(30, 100, 300, 300);
         chartPanel.setLayout(new BorderLayout());
@@ -90,10 +90,10 @@ public class Summary extends JPanel {
 
         // ค่าเริ่มต้น: เติม "ปี" (รวมปีปัจจุบันเสมอ) แต่ "ไม่เลือก" อัตโนมัติ 
         suppressEvents = true;
-        populateYearsAlwaysIncludeCurrent();
-        yearBox.setSelectedIndex(-1);   // ไม่เลือกปี
-        monthBox.removeAllItems();      // เดือนเริ่มว่างจนกว่าจะเลือกปี
-        monthBox.setSelectedIndex(-1);  // ไม่เลือกเดือน
+        populateYearsCurrent();
+        yearBox.setSelectedIndex(-1); // ไม่เลือกปี
+        monthBox.removeAllItems(); // เดือนเริ่มว่างจนกว่าจะเลือกปี
+        monthBox.setSelectedIndex(-1); // ไม่เลือกเดือน
         suppressEvents = false;
 
         // เมื่อเลือกปีแล้ว ให้อัปเดตรายชื่อเดือน (รวมเดือนปัจจุบันถ้าเป็นปีนี้) แต่ยังไม่เลือก
@@ -102,7 +102,7 @@ public class Summary extends JPanel {
             Integer y = (Integer) yearBox.getSelectedItem();
             suppressEvents = true;
             if (y != null) {
-                populateMonthsAlwaysIncludeCurrent(y);
+                populateMonthsCurrent(y);
                 monthBox.setSelectedIndex(-1); // ไม่เลือกเดือนอัตโนมัติ
             } else {
                 monthBox.removeAllItems();
@@ -112,7 +112,7 @@ public class Summary extends JPanel {
             clearSummaryDisplay(); // เคลียร์ข้อมูลจนกว่าจะเลือกทั้งปีและเดือน
         });
 
-        // เมื่อเลือกเดือน + ปีครบ ให้แสดงสรุป
+        // เมื่อเลือกเดือนและปีครบจะให้แสดงสรุป
         monthBox.addActionListener(e2 -> {
             if (suppressEvents) return;
             Integer y = (Integer) yearBox.getSelectedItem();
@@ -126,7 +126,7 @@ public class Summary extends JPanel {
     }
 
     // Helpers สำหรับ Year/Month ที่ "รวมปัจจุบันเสมอ"
-    private void populateYearsAlwaysIncludeCurrent() {
+    private void populateYearsCurrent() {
         yearBox.removeAllItems();
         java.util.Set<Integer> years = new java.util.TreeSet<>();
         try {
@@ -138,7 +138,7 @@ public class Summary extends JPanel {
         for (Integer y : years) yearBox.addItem(y);
     }
 
-    private void populateMonthsAlwaysIncludeCurrent(int year) {
+    private void populateMonthsCurrent(int year) {
         monthBox.removeAllItems();
         java.util.Set<Integer> months = new java.util.TreeSet<>();
         try {
@@ -156,7 +156,14 @@ public class Summary extends JPanel {
         }
     }
 
-    private JLabel makeValueLabel(Color c, int x, int y) {
+    /**
+     * สำหรับสร้าง JLabel แสดงค่า
+     * @param c สีตัวอักษร
+     * @param x ตำแหน่งแกน x
+     * @param y ตำแหน่งแกน y
+     * @return JLabel ที่สร้างขึ้น
+     */
+    private JLabel ValueLabel(Color c, int x, int y) {
         JLabel lbl = new JLabel("0", SwingConstants.LEFT);
         lbl.setFont(new Font("Times New Roman", Font.PLAIN, 16));
         lbl.setForeground(c);
@@ -164,7 +171,7 @@ public class Summary extends JPanel {
         return lbl;
     }
 
-    private JLabel makeTitleLabel(String text, int x, int y) {
+    private JLabel TitleLabel(String text, int x, int y) {
         JLabel lbl = new JLabel(text, SwingConstants.LEFT);
         lbl.setFont(new Font("Times New Roman", Font.PLAIN, 20));
         lbl.setForeground(Color.WHITE);
@@ -172,12 +179,13 @@ public class Summary extends JPanel {
         return lbl;
     }
 
-    private JSeparator makeLine(int x, int y) {
+    private JSeparator Line(int x, int y) {
         JSeparator line = new JSeparator(SwingConstants.HORIZONTAL);
         line.setBounds(x, y, 300, 5);
         return line;
     }
 
+    // อัปเดตข้อมูลสรุปและกราฟ
     private void updateSummaryAndChart(int year, Month month) {
         try {
             YearMonth ym = YearMonth.of(year, month);
@@ -194,7 +202,7 @@ public class Summary extends JPanel {
             transactionLabel.setText(String.valueOf(trans));
 
             chartPanel.removeAll();
-            PieChart chart = createPieChartForMonth(ym);
+            PieChart chart = createPieChart(ym);
             chartPanel.add(chart, BorderLayout.CENTER);
             chartPanel.revalidate();
             chartPanel.repaint();
@@ -203,7 +211,8 @@ public class Summary extends JPanel {
         }
     }
 
-    private PieChart createPieChartForMonth(YearMonth ym) throws Exception {
+    // สร้าง PieChart จากข้อมูลหมวดหมู่รายจ่าย
+    private PieChart createPieChart(YearMonth ym) throws Exception {
         PieChart pie = new PieChart();
         pie.setChartType(PieChart.PeiChartType.DEFAULT);
         pie.setOpaque(false);
@@ -214,16 +223,17 @@ public class Summary extends JPanel {
             return pie;
         }
         for (CategorySlice s : slices) {
-            pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), generateColorFromName(s.getCategory())));
+            pie.addData(new ModelPieChart(s.getCategory(), s.getAmount(), generateColor(s.getCategory())));
         }
         return pie;
     }
 
-    private Color generateColorFromName(String name) {
+    // สร้างสีจากชื่อหมวดหมู่ (เพื่อให้แต่ละหมวดมีสีประจำตัว)
+    private Color generateColor(String name) {
         int hash = Math.abs(name.hashCode() * 31 + name.length() * 97);
-        float hue = ((hash % 1000) / 1000f); // (0.0–1.0)
-        float saturation = 0.55f + ((hash % 300) / 1000f); // 0.55–0.85
-        float brightness = 0.75f + ((hash % 200) / 1000f); // 0.75–0.95
+        float hue = ((hash % 1000) / 1000f);
+        float saturation = 0.55f + ((hash % 300) / 1000f);
+        float brightness = 0.75f + ((hash % 200) / 1000f);
 
         // ทำให้สีแตกต่างกันมากขึ้นในแต่ละชื่อ
         hue = (float) ((hue + Math.sin(hash)) % 1.0);
@@ -235,8 +245,8 @@ public class Summary extends JPanel {
         return Color.getHSBColor(hue, saturation, brightness);
     }
 
-    /** เคลียร์ค่าแสดงผล + รีเซ็ต combobox เป็น -1 (ไม่เลือก) แต่ยังคงรายการปี/เดือนปัจจุบันใน list */
-    private void resetSelectorsToUnselected() {
+    // เคลียร์ค่าแสดงผลและรีเซ็ต combobox เป็น -1 (ไม่เลือก) แต่ยังคงรายการปี/เดือนปัจจุบันใน list
+    private void resetSelectors() {
         suppressEvents = true;
         // เคลียร์ค่าแสดงผล
         totalSpendLabel.setText("0");
@@ -249,20 +259,20 @@ public class Summary extends JPanel {
         chartPanel.revalidate();
         chartPanel.repaint();
 
-        // ปี: คงรายการเดิมไว้แต่ตั้งไม่เลือก
+        // ปี คงรายการเดิมไว้แต่ตั้งไม่เลือก
         if (yearBox.getItemCount() == 0) {
-            populateYearsAlwaysIncludeCurrent();
+            populateYearsCurrent();
         }
         yearBox.setSelectedIndex(-1);
 
-        // เดือน: ล้างรายการและตั้งไม่เลือก
+        // เดือน ล้างรายการและตั้งไม่เลือก
         monthBox.removeAllItems();
         monthBox.setSelectedIndex(-1);
 
         suppressEvents = false;
     }
 
-    /** ใช้ตอนเปลี่ยนปี/เดือนไม่ครบ เพื่อเคลียร์ค่าหน้าจอ โดย "ไม่" ยุ่งกับรายการใน combobox */
+    // ใช้ตอนเปลี่ยนปี/เดือนไม่ครบ เพื่อเคลียร์ค่าหน้าจอ โดย "ไม่" ยุ่งกับรายการใน combobox
     private void clearSummaryDisplay() {
         totalSpendLabel.setText("0");
         incomeLabel.setText("0");

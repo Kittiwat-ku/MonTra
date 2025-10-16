@@ -6,13 +6,17 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import javax.swing.*;
 
-import ButtonDesign.LabeledInputCard;
+import ButtonDesign.LabelCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
+/**
+ * SetCat page
+ * ไว้เพิ่มหมวดหมู่ตามที่ต้องการ
+ */
 public class SetCat extends JPanel {
-    LabeledInputCard description;
+    LabelCard description;
     private final JLabel errorLabel;
 
     public SetCat(AppController controller, AppContext appContext) {
@@ -25,7 +29,7 @@ public class SetCat extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
 
-        description = new LabeledInputCard("Category", "Set Category");
+        description = new LabelCard("Category", "Set Category");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
@@ -33,7 +37,7 @@ public class SetCat extends JPanel {
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 320, 320, 30);
+        errorLabel.setBounds(30, 320, 400, 30);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Comfirm ");
@@ -43,6 +47,7 @@ public class SetCat extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
+        // actions
         b1.addActionListener(new ActionListener() {
 
             @Override
@@ -81,7 +86,7 @@ public class SetCat extends JPanel {
                 }
 
                 try {
-                    // All passed
+                    // สำเร็จ
                     appContext.addCategory(trimmed);
                     showPassed("[ "+trimmed+" ] has been added");
                     clear();

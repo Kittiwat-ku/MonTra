@@ -15,6 +15,10 @@ import Expense.Expense;
 import Expense.MonthlySummary;
 import Service.AppContext;
 
+/**
+ * หน้าแสดงรายการรายจ่ายรายเดือน
+ * -เลือกปีและเดือนเพื่อดูรายการ
+ */
 public class MList extends JPanel {
 
     private final AppContext appContext;
@@ -23,7 +27,6 @@ public class MList extends JPanel {
     private JComboBox<String> monthBox;
     private JComboBox<Integer> yearBox;
     private boolean suppressEvents = false;
-
     private JList<Expense> list;
     private DefaultListModel<Expense> model;
 
@@ -31,6 +34,7 @@ public class MList extends JPanel {
         this.appContext = appContext;
         setLayout(null);
 
+        // Back button
         JButton b1 = new PillButton("← Back");
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b1.setBounds(0, 10, 100, 30);
@@ -38,40 +42,42 @@ public class MList extends JPanel {
         b1.setForeground(Color.WHITE);
         add(b1);
         b1.addActionListener(e -> {
-            resetSelectorsToUnselected(); // กลับเป็น -1 ทั้งคู่ + เคลียร์รายการ
+            resetSelectors();
             controller.showPage("Summary");
         });
 
+        // List Panel
         MListPanel = new RoundedPanel(30, 30, new Color(255, 255, 255), Color.GRAY, 1);
         MListPanel.setBounds(30, 150, 300, 600);
         MListPanel.setLayout(new BorderLayout());
         add(MListPanel);
 
+        // Header
         JPanel header = new JPanel(new GridLayout(1, 2));
         header.setBackground(new Color(240, 240, 240));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel left = new JLabel("Description / Category / Time", SwingConstants.CENTER);
+        // Header Labels
+        JLabel left = new JLabel("Desc. / Cate. / Time", SwingConstants.CENTER);
         left.setFont(new Font("Segoe UI", Font.BOLD, 14));
         JLabel right = new JLabel("Amount", SwingConstants.CENTER);
         right.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
         header.add(left);
         header.add(right);
         MListPanel.add(header, BorderLayout.NORTH);
 
+        // JList
         model = new DefaultListModel<>();
         list = new JList<>(model);
         list.setFixedCellHeight(45);
         list.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         list.setBackground(Color.WHITE);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         list.setCellRenderer((lst, value, index, isSelected, cellHasFocus) -> {
             JPanel row = new JPanel(new BorderLayout());
             row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)));
 
-            String dateTime = formatDateTime(value.getDate());
+            String dateTime = DateTimeformat(value.getDate());
             JPanel leftP = new JPanel(new GridLayout(2, 1));
             leftP.setOpaque(false);
 
@@ -117,7 +123,7 @@ public class MList extends JPanel {
         add(yearBox);
 
         // ค่าเริ่มต้น: เติม "ปี" (รวมปีปัจจุบันเสมอ) แต่ "ไม่เลือก" อัตโนมัติ
-        setupYearMonthSelectors();
+        YearMonthSelect();
 
         appContext.addListener(evt -> {
             if ("reload".equals(evt.getPropertyName())) {
@@ -126,32 +132,32 @@ public class MList extends JPanel {
         });
     }
 
-    /** โหลดปีเริ่มต้น (รวมปีปัจจุบันเสมอ) แต่ไม่เลือกอะไรเลย; เดือนเริ่มว่างจนกว่าจะเลือกปี */
-    private void setupYearMonthSelectors() {
+    // โหลดปีเริ่มต้น (รวมปีปัจจุบันเสมอ) แต่ไม่เลือกอะไรเลย; เดือนเริ่มว่างจนกว่าจะเลือกปี
+    private void YearMonthSelect() {
         suppressEvents = true;
-        populateYearsAlwaysIncludeCurrent();
-        yearBox.setSelectedIndex(-1);   // ไม่เลือกปี
-        monthBox.removeAllItems();      // เดือนเริ่มว่าง
-        monthBox.setSelectedIndex(-1);  // ไม่เลือกเดือน
+        populateYearsCurrent();
+        yearBox.setSelectedIndex(-1); // ไม่เลือกปี
+        monthBox.removeAllItems(); // เดือนเริ่มว่าง
+        monthBox.setSelectedIndex(-1); // ไม่เลือกเดือน
         suppressEvents = false;
 
-        // เมื่อเลือกปี → อัปเดตเดือน (ไม่เลือกอัตโนมัติ)
+        // เมื่อเลือกปี จะอัปเดตเดือนให้เลือก (ไม่เลือกอัตโนมัติ)
         yearBox.addActionListener(e -> {
             if (suppressEvents) return;
             Integer y = (Integer) yearBox.getSelectedItem();
             suppressEvents = true;
             if (y != null) {
-                populateMonthsAlwaysIncludeCurrent(y);
+                populateMonthsCurrent(y);
                 monthBox.setSelectedIndex(-1);
             } else {
                 monthBox.removeAllItems();
                 monthBox.setSelectedIndex(-1);
             }
             suppressEvents = false;
-            clearListDisplay(); // เคลียร์รายการจนกว่าจะเลือกครบ
+            clearList();
         });
 
-        // เมื่อเลือกเดือน + ปีครบ = ให้แสดงรายการรายจ่าย
+        // เมื่อเลือกเดือนและปีครบจะแสดงรายการรายจ่าย
         monthBox.addActionListener(e -> {
             if (suppressEvents) return;
             Integer y = (Integer) yearBox.getSelectedItem();
@@ -159,13 +165,12 @@ public class MList extends JPanel {
             if (y != null && mText != null) {
                 updateMonthlyList(y, java.time.Month.valueOf(mText));
             } else {
-                clearListDisplay();
+                clearList();
             }
         });
     }
-    // Helpers
     // สำหรับ Year/Month ที่ "รวมปัจจุบันเสมอ" 
-    private void populateYearsAlwaysIncludeCurrent() {
+    private void populateYearsCurrent() {
         yearBox.removeAllItems();
         java.util.Set<Integer> years = new java.util.TreeSet<>();
         try {
@@ -176,7 +181,7 @@ public class MList extends JPanel {
         for (Integer y : years) yearBox.addItem(y);
     }
 
-    private void populateMonthsAlwaysIncludeCurrent(int year) {
+    private void populateMonthsCurrent(int year) {
         monthBox.removeAllItems();
         java.util.Set<Integer> months = new java.util.TreeSet<>();
         try {
@@ -194,7 +199,7 @@ public class MList extends JPanel {
         }
     }
 
-    /** โหลดข้อมูลรายจ่ายจาก AppContext.getMonthlySummary */
+    // โหลดข้อมูลรายจ่ายจาก AppContext.getMonthlySummary
     private void updateMonthlyList(int year, Month month) {
         try {
             model.clear();
@@ -219,35 +224,33 @@ public class MList extends JPanel {
             Month month = Month.valueOf((String) monthBox.getSelectedItem());
             updateMonthlyList(year, month);
         } else {
-            clearListDisplay();
+            clearList();
         }
     }
 
-    private void clearListDisplay() {
+    private void clearList() {
         model.clear();
     }
 
-    /** เคลียร์รายการ + รีเซ็ต combobox เป็น -1; คงรายการปี (รวมปีปัจจุบัน) ไว้ */
-    private void resetSelectorsToUnselected() {
+    // เคลียร์รายการและรีเซ็ต combobox เป็น -1; คงรายการปี (รวมปีปัจจุบัน) ไว้
+    private void resetSelectors() {
         suppressEvents = true;
+        clearList();
 
-        // รายการ
-        clearListDisplay();
-
-        // ปี: คงรายการเดิมไว้ ถ้ายังไม่มีให้เติม แล้วตั้งไม่เลือก
+        // ปี คงรายการเดิมไว้ ถ้ายังไม่มีให้เติม แล้วตั้งไม่เลือก
         if (yearBox.getItemCount() == 0) {
-            populateYearsAlwaysIncludeCurrent();
+            populateYearsCurrent();
         }
         yearBox.setSelectedIndex(-1);
 
-        // เดือน: ล้างทิ้งและไม่เลือก
+        // เดือน ล้างทิ้งและไม่เลือก
         monthBox.removeAllItems();
         monthBox.setSelectedIndex(-1);
 
         suppressEvents = false;
     }
 
-    private String formatDateTime(String raw) {
+    private String DateTimeformat(String raw) {
         try {
             java.time.LocalDateTime dt = java.time.LocalDateTime.parse(raw);
             java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern(

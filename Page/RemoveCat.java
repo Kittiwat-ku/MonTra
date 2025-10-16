@@ -18,6 +18,10 @@ import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
+/**
+ * RemoveCat page
+ * ไว้ลบหมวดหมู่ที่เพิ่มไว้
+ */
 public class RemoveCat extends JPanel {
 
     private final JLabel errorLabel;
@@ -38,11 +42,11 @@ public class RemoveCat extends JPanel {
         c.setSelectedIndex(-1);
         add(c);
 
-        // error
+        // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(57, 230, 280, 30);
+        errorLabel.setBounds(57, 230, 400, 30);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Remove ");
@@ -52,6 +56,7 @@ public class RemoveCat extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
+        // actions
         b1.addActionListener(new ActionListener() {
 
             @Override
@@ -99,6 +104,7 @@ public class RemoveCat extends JPanel {
         });
     }
 
+    // รีเฟรชรายการใน combobox
     private void refreshComboItems(JComboBox<String> combo, AppContext appContext) {
         List<String> tmp = appContext.getCategories();
         combo.removeAllItems();
@@ -122,7 +128,6 @@ public class RemoveCat extends JPanel {
     private void clearError() {
         errorLabel.setText("");
     }
-
     private JComboBox<String> province_to_combobox(List<String> s) {
         JComboBox<String> tmp = new JComboBox<>();
         for (String string : s) tmp.addItem(string);

@@ -6,15 +6,19 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 
 import javax.swing.*;
-import ButtonDesign.LabeledInputCard;
+import ButtonDesign.LabelCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 
 import Service.AppContext;
 
+/**
+ * RemoveBudget page
+ * ไว้ลบรายรับ
+ */
 public class RemoveBud extends JPanel {
     JLabel errorLabel;
-    LabeledInputCard description;
+    LabelCard description;
 
     public RemoveBud(AppController controller, AppContext appContext) {
         setLayout(null);
@@ -57,14 +61,14 @@ public class RemoveBud extends JPanel {
         line.setBounds(80, 145, 200, 5);
         add(line);
 
-        // error
+        // error Label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        errorLabel.setBounds(30, 360, 300, 20);
+        errorLabel.setBounds(30, 360, 400, 30);
         add(errorLabel);
 
-        description = new LabeledInputCard("Remove Income", "Remove Your Income");
+        description = new LabelCard("Remove Income", "Remove Your Income");
         description.setBounds(30, 250, 300, 100);
         add(description);
 

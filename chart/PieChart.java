@@ -26,8 +26,25 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+/**
+ * คลาสแสดงกราฟวงกลม (Pie Chart) แบบกำหนดเอง
+ * - รองรับทั้งแบบเต็มวง และแบบโดนัท
+ * - แสดง popup tooltip เมื่อ hover
+ * - คลิกเพื่อเลือก slice ได้
+ */
 public class PieChart extends JComponent {
-
+    
+    /**
+     * ข้อมูลของกราฟวงกลม
+     * -models รายการข้อมูลของกราฟไว้เก็บข้อมูลของ slice แต่ละอัน
+     * -format รูปแบบการแสดงตัวเลข
+     * -chartType ประเภทของกราฟ (เต็มวง หรือ โดนัท)
+     * -selectedIndex ตำแหน่งของ slice ที่ถูกเลือก
+     * -hoverIndex ตำแหน่งของ slice ที่ถูก hover
+     * -borderHover ระยะขอบเมื่อ hover
+     * -padding ระยะห่างรอบกราฟ
+     * -popupLabel ป้ายแสดงข้อมูลเมื่อ hover
+     */
     private final List<ModelPieChart> models;
     private final DecimalFormat format = new DecimalFormat("#,##0.#");
     private PeiChartType chartType = PeiChartType.DEFAULT;
@@ -37,10 +54,12 @@ public class PieChart extends JComponent {
     private float padding = 0.2f;
     private JLabel popupLabel;
 
+    // constructor
     public PieChart() {
         models = new ArrayList<>();
         setForeground(new Color(60, 60, 60));
-
+        
+        // mouse event
         MouseAdapter mouseEvent = new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -80,6 +99,7 @@ public class PieChart extends JComponent {
         addMouseListener(mouseEvent);
         addMouseMotionListener(mouseEvent);
 
+        // popup label
         popupLabel = new JLabel();
         popupLabel.setOpaque(true);
         popupLabel.setBackground(new Color(255, 255, 255, 230));
@@ -91,7 +111,7 @@ public class PieChart extends JComponent {
         ));
         popupLabel.setVisible(false);
     }
-
+    // วาดกราฟ
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
@@ -120,6 +140,7 @@ public class PieChart extends JComponent {
             g2.fill(createShape(selectedIndex, 0.018f, borderHover));
         }
 
+        // วาด slice ของกราฟ
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
         for (int i = 0; i < models.size(); i++) {
             ModelPieChart data = models.get(i);
@@ -138,6 +159,7 @@ public class PieChart extends JComponent {
             drawAngle -= angle;
         }
 
+        // วาดข้อความเปอร์เซ็นต์บน slice
         drawAngle = 90;
         for (int i = 0; i < models.size(); i++) {
             ModelPieChart data = models.get(i);
@@ -161,6 +183,7 @@ public class PieChart extends JComponent {
         super.paintComponent(g);
     }
 
+    // แสดง popup เมื่อ hover
     private void showPopup(Point screenPoint, ModelPieChart data) {
         SwingUtilities.invokeLater(() -> {
             if (popupLabel.getParent() == null) {
@@ -192,7 +215,8 @@ public class PieChart extends JComponent {
     private void hidePopup() {
         SwingUtilities.invokeLater(() -> popupLabel.setVisible(false));
     }
-
+    
+    // สร้างรูปร่างของ slice ที่เลือกเมื่อ hover หรือ selected
     private Shape createShape(int index, float a, float p) {
         Shape shape = null;
         double width = getWidth();
@@ -219,11 +243,13 @@ public class PieChart extends JComponent {
         return shape;
     }
 
+    // คำนวณเปอร์เซ็นต์ของ slice
     private String getPercentage(double value) {
         double total = getTotalvalue();
         return format.format(value * 100 / total);
     }
 
+    // ตรวจสอบตำแหน่งเมาส์ว่าอยู่บน slice ไหน
     private int checkMouseHover(Point point) {
         int index = -1;
         double width = getWidth();
@@ -253,6 +279,7 @@ public class PieChart extends JComponent {
         return index;
     }
 
+    // คำนวณค่ารวมของข้อมูลทั้งหมด
     private double getTotalvalue() {
         double max = 0;
         for (ModelPieChart data : models) {
@@ -261,6 +288,9 @@ public class PieChart extends JComponent {
         return max;
     }
 
+    /**
+     * Getter และ Setter Methods
+     */
     public int getSelectedIndex() {
         return selectedIndex;
     }

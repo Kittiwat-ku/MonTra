@@ -6,28 +6,33 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import javax.swing.*;
 
-import ButtonDesign.LabeledInputCard;
+import ButtonDesign.LabelCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
+/**
+ * หน้าเพิ่มรายรับครั้งแรกเมื่อเข้าแอป
+ */
 public class FBudget extends JPanel {
     private final JLabel errorLabel;
 
     public FBudget(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        LabeledInputCard description = new LabeledInputCard("Income", "Set Income");
+        // back button
+        LabelCard description = new LabelCard("Income", "Set Income");
         description.setBounds(30, 200, 300, 100);
         add(description);
 
-        // error
+        // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        errorLabel.setBounds(30, 320, 300, 20);
+        errorLabel.setBounds(30, 320, 400, 30);
         add(errorLabel);
 
+        // confirm button
         PillButton b2 = new PillButton(" Comfirm ");
         b2.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b2.setBounds(100, 450, 175, 60);
@@ -35,6 +40,7 @@ public class FBudget extends JPanel {
         b2.setForeground(Color.BLACK);
         add(b2);
 
+        // action
         b2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

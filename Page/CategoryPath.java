@@ -6,11 +6,15 @@ import javax.swing.*;
 import ButtonDesign.*;
 import Controller.AppController;
 
+/**
+ * หน้าเลือกเพิ่ม/ลบ หมวดหมู่
+ */
 public class CategoryPath extends JPanel {
 
     public CategoryPath(AppController controller) {
         setLayout(null);
 
+        // Back Button
         JButton b1 = new PillButton("← Back"); 
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
         b1.setBounds(0, 10, 100, 30); 
@@ -18,29 +22,29 @@ public class CategoryPath extends JPanel {
         b1.setForeground(Color.WHITE); 
         add(b1);;
 
+        // Title
         JLabel l1 = new JLabel(" Add Category ");
         l1.setFont(new Font("Segoe UI", Font.BOLD, 30));
         l1.setForeground(new Color(255, 255, 224));
         l1.setBounds(83, 90, 400, 50);
         add(l1);
-
         JLabel l2 = new JLabel(" Remove Category ");
         l2.setFont(new Font("Segoe UI", Font.BOLD, 30));
         l2.setForeground(new Color(255, 255, 224));
         l2.setBounds(50, 390, 400, 50);
         add(l2);
 
+        // Menu Card
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
-
-        JButton add = new MenuCardButton("/image/add.png", imgW, imgH, radius);
+        JButton add = new MenuCard("/image/add.png", imgW, imgH, radius);
         add.setBounds(75, 150, cardW, cardH);
         add(add);
-
-        JButton remove = new MenuCardButton("/image/remove.png", imgW, imgH, radius);
+        JButton remove = new MenuCard("/image/remove.png", imgW, imgH, radius);
         remove.setBounds(75, 450, cardW, cardH);
         add(remove);
 
+        // Action
         b1.addActionListener(e -> controller.showPage("More"));
         add.addActionListener(e -> controller.showPage("SetCat"));
         remove.addActionListener(e -> controller.showPage("RemoveCat"));

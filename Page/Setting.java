@@ -3,15 +3,28 @@ package Page;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import javax.swing.*;
-import ButtonDesign.MenuCardButton;
+import ButtonDesign.MenuCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 
+/**
+ * Setting page
+ * ไว้ลิงก์ไปหน้าเพิ่มและลบรายรับ
+ */
 public class Setting extends JPanel{
 
     public Setting(AppController controller){
         setLayout(null);
 
+        /** 
+         * Components
+         * -Back Button
+         * -Title Label
+         * -Add Income Label
+         * -Remove Income Label
+         * -Add Income Card Button
+         * -Remove Income Card Button   
+         */
         JButton b1 = new PillButton("← Back"); 
         b1.setFont(new Font("Segoe UI", Font.BOLD, 16)); 
         b1.setBounds(0, 10, 100, 30); 
@@ -34,19 +47,21 @@ public class Setting extends JPanel{
         int cardW = 220, cardH = 220, radius = 30;
         int imgW = 160, imgH = 160;
 
-        JButton budget = new MenuCardButton("/image/budget.png", imgW, imgH, radius);
+        JButton budget = new MenuCard("/image/budget.png", imgW, imgH, radius);
         budget.setBounds(75, 150,  cardW, cardH);
         add(budget);
 
-        JButton removebudget = new MenuCardButton("/image/spend.png", imgW, imgH, radius);
+        JButton removebudget = new MenuCard("/image/spend.png", imgW, imgH, radius);
         removebudget.setBounds(75, 450, cardW, cardH);
         add(removebudget);
 
+        // Actions
         b1.addActionListener(e -> controller.showPage("Home")); 
         budget.addActionListener(e -> controller.showPage("Budget"));
         removebudget.addActionListener(e -> controller.showPage("RemoveBud"));
 
     }
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

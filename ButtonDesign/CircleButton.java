@@ -3,6 +3,10 @@ package ButtonDesign;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ *  ปุ่มวงกลมที่นำมาใช้ใน UI (์nav bar)
+ *  
+ */
 public class CircleButton extends JButton {
 
     public CircleButton(String text) {
@@ -14,6 +18,9 @@ public class CircleButton extends JButton {
         setForeground(Color.DARK_GRAY);
     }
 
+    /**
+     * สร้างปุ่มวงกลม
+     */
     @Override
     protected void paintComponent(Graphics g) {
         int size = Math.min(getWidth(), getHeight());

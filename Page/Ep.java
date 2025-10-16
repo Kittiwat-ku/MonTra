@@ -5,43 +5,53 @@ import java.awt.event.*;
 import java.awt.geom.Point2D;
 import javax.swing.*;
 
-import ButtonDesign.LabeledInputCard;
+import ButtonDesign.LabelCard;
 import ButtonDesign.PillButton;
 import Controller.AppController;
 import Service.AppContext;
 
+
+/**
+ * หน้า export รายการค่าใช้จ่าย
+ * เอาไปทำอะไรก็ได้ เช่น excel, text file
+ */
 public class Ep extends JPanel {
     private final JLabel errorLabel;
-    private final LabeledInputCard filename;
+    private final LabelCard filename;
 
     public Ep(AppController controller, AppContext appContext) {
         setLayout(null);
 
-        JButton back = new PillButton("← Back");
-        back.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        back.setBounds(0, 10, 100, 30);
-        ((PillButton) back).setButtonStyle(PillButton.Style.OUTLINE);
-        back.setForeground(Color.WHITE);
-        add(back);
+        // back button
+        JButton b1 = new PillButton("← Back");
+        b1.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b1.setBounds(0, 10, 100, 30);
+        ((PillButton) b1).setButtonStyle(PillButton.Style.OUTLINE);
+        b1.setForeground(Color.WHITE);
+        add(b1);
 
-        filename = new LabeledInputCard("Export", "Insert filename");
+        // title
+        filename = new LabelCard("Export", "Insert filename");
         filename.setBounds(30, 200, 300, 100);
         add(filename);
 
+        // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 320, 320, 20);
+        errorLabel.setBounds(30, 320, 400, 30);
         add(errorLabel);
 
+        // confirm button
         PillButton confirm = new PillButton(" Confirm ");
         confirm.setFont(new Font("Segoe UI", Font.BOLD, 16));
         confirm.setBounds(100, 450, 175, 60);
         ((PillButton) confirm).setButtonStyle(PillButton.Style.HYBRID);
         confirm.setForeground(Color.BLACK);
         add(confirm);
-
-        back.addActionListener(e -> {
+        
+        // action
+        b1.addActionListener(e -> {
             clearError();
             filename.setText("");
             controller.showPage("Home");
@@ -68,6 +78,7 @@ public class Ep extends JPanel {
         });
     }
 
+    // error handling
     private void showError(String msg) { errorLabel.setText(msg); }
     private void clearError() { errorLabel.setText(""); }
 
