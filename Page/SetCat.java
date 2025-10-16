@@ -36,8 +36,8 @@ public class SetCat extends JPanel {
         // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 320, 400, 30);
+        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        errorLabel.setBounds(30, 310, 400, 30);
         add(errorLabel);
 
         PillButton b2 = new PillButton(" Comfirm ");
@@ -144,3 +144,4 @@ public class SetCat extends JPanel {
         g2d.fillRect(0, 0, w, h);
     }
 }
+
