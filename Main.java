@@ -11,12 +11,12 @@ public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private AppController controller;
-    private AppContext appContext; // แหล่งรวมบริการทั้งหมด
+    private AppContext appContext;
 
     public Main() {
         // สร้าง AppContext ครั้งเดียวให้ทั้งแอป
         try {
-            appContext = new AppContext(); // ภายในจัดการ Storage/Config/Temp/Lifecycle ให้แล้ว
+            appContext = new AppContext(); 
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(
@@ -42,13 +42,13 @@ public class Main extends JFrame {
             e.printStackTrace();
         }
 
-        // ไอคอน (ถ้า resource ไม่มี ให้ห่อไว้กัน NPE)
+        // Icon
         try {
             Image icon = new ImageIcon(getClass().getResource("/image/logo1.png")).getImage();
             setIconImage(icon);
-        } catch (Exception ignore) { /* ไม่มีไอคอนไม่เป็นไร */ }
+        } catch (Exception ignore) {}
 
-        // --- Register Pages (ทุกหน้าใช้ appContext ชุดเดียว) ---
+        // Register Pages
         mainPanel.add(new Welcome(controller, appContext),     "Welcome");
         mainPanel.add(new Home(controller, appContext),        "Home");
         mainPanel.add(new More(controller),                    "More");

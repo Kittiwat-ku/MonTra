@@ -66,16 +66,17 @@ public class SetCat extends JPanel {
                 
                 String trimmed = raw.trim();
 
-                if (trimmed.isEmpty()) {
-                    showError("Input cannot be empty");
+                if (trimmed.contains("\"")) {
+                    showError("Description cannot contain double quotes (\").");
                     return;
                 }
-                // if (hasLeadingOrTrailingSpace) {
-                //     showError("Leading/Trailing spaces are not allowed");
-                //     return;
-                // }
+
+                if (trimmed.isEmpty()) {
+                    showError("Description cannot be empty.");
+                    return;
+                }
                 if (trimmed.contains(",")) {
-                    showError("Comma ( , ) is not allowed");
+                    showError("Description cannot contain a comma (,).");
                     return;
                 }
 

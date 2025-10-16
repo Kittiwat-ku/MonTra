@@ -53,7 +53,7 @@ public final class CsvUtils {
         }
     }
 
-    /** แปลง String เป็น int ถ้า null หรือแปลงไม่ได้ → 0 */
+    /** แปลง String เป็น int ถ้า null หรือแปลงไม่ได้ return 0 */
     public static int parseIntOrZero(String s) {
         if (s == null) {
             return 0;

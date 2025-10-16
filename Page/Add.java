@@ -80,15 +80,19 @@ public class Add extends JPanel {
                 String rawAmount = amount.getText();
                 String rawDesc = description.getText();
 
-                if (rawAmount == null)
-                    rawAmount = "";
-                if (rawDesc == null)
-                    rawDesc = "";
+                if (rawAmount == null) rawAmount = "";
+                if (rawDesc == null) rawDesc = "";
 
                 // ไม่อนุญาต comma ใน description (กันปัญหา CSV)
                 // strip comma ใน amount สำหรับรูปแบบ 1,000
                 rawDesc = rawDesc.trim();
                 rawAmount = rawAmount.replace(",", "").trim();
+
+                // ห้ามใช้เครื่องหมาย "
+                if (rawDesc.contains("\"")) {
+                    showError("Description cannot contain double quotes (\").");
+                    return;
+                }
 
                 if (rawDesc.isEmpty()) {
                     showError("Description cannot be empty.");
@@ -173,7 +177,6 @@ public class Add extends JPanel {
         return tmp;
     }
 
-    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
