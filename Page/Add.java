@@ -66,8 +66,8 @@ public class Add extends JPanel {
         // error label
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        errorLabel.setBounds(30, 465, 400, 30);
+        errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        errorLabel.setBounds(30, 455, 400, 30);
         add(errorLabel);
 
         // Action
@@ -213,3 +213,4 @@ public class Add extends JPanel {
         g2d.fillRect(0, 0, w, h);
     }
 }
+
