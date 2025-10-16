@@ -57,7 +57,7 @@ public class More extends JPanel {
         b1.setToolTipText("Back");
         setbt.setToolTipText("Category");
         exbt.setToolTipText("Export");
-        b1.addActionListener(e -> controller.showPage("Setting"));
+        b1.addActionListener(e -> controller.showPage("Home"));
         setbt.addActionListener(e -> controller.showPage("CategoryPath"));
         exbt.addActionListener(e -> controller.showPage("Ep"));
     }
@@ -88,3 +88,4 @@ public class More extends JPanel {
         g2d.fillRect(0, 0, w, h);
     }
 }
+
